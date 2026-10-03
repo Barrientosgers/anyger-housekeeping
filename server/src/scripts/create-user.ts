@@ -1,6 +1,5 @@
 import readline from 'node:readline';
 import { hash } from '@node-rs/argon2';
-import { loadConfig } from '../config.js';
 import { createPool } from '../db/pool.js';
 import { migrate } from '../db/migrate.js';
 
@@ -42,8 +41,13 @@ if (confirm !== password) {
   process.exit(1);
 }
 
-const config = loadConfig();
-const pool = createPool(config.DATABASE_URL, config.NODE_ENV === 'production');
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  console.error('Set DATABASE_URL first (see docs/deploy.md).');
+  process.exit(1);
+}
+// Remote databases such as Neon require TLS; their URL carries sslmode=require.
+const pool = createPool(databaseUrl, false);
 await migrate(pool);
 await pool.query(
   `INSERT INTO users (email, password_hash, role) VALUES ($1, $2, $3)
