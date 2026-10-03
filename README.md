@@ -2,8 +2,8 @@
 
 A calm, Spanish-first scheduling app that replaces a paper calendar for a small family house-cleaning business. Built for my parents, who are not tech-savvy, and engineered like production software: tested, secured, deployed, and documented.
 
-**Live:** _not deployed yet — see [docs/deploy.md](docs/deploy.md)_ (free hosting, about 15 minutes to set up)
-**Status:** Phase 1 of 6 complete (appointments + calendar + auth + CI). See the roadmap below.
+**Live:** https://anyger-housekeeping.onrender.com (free hosting; the first load after idle can take 30-60 seconds)
+**Status:** Phase 1 of 6 deployed (appointments + calendar + auth + CI). See the roadmap below.
 
 ## Who it's for
 
