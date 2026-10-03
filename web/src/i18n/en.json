@@ -1,0 +1,82 @@
+{
+  "app": { "name": "AnyGer's Housekeeping" },
+  "common": {
+    "loading": "Loading…",
+    "back": "Back",
+    "retry": "Try again",
+    "save": "Save",
+    "saving": "Saving…"
+  },
+  "login": {
+    "title": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in"
+  },
+  "nav": { "logout": "Sign out" },
+  "calendar": {
+    "title": "Calendar",
+    "month": "Month",
+    "week": "Week",
+    "previous": "← Previous",
+    "next": "Next →",
+    "today": "Today",
+    "newAppointment": "+ New appointment",
+    "noAppointments": "No appointments",
+    "count_one": "{{count}} appointment",
+    "count_other": "{{count}} appointments",
+    "viewSwitch": "Change view"
+  },
+  "form": {
+    "newTitle": "New appointment",
+    "editTitle": "Edit appointment",
+    "clientName": "Client name",
+    "clientPhone": "Phone (optional)",
+    "address": "Address",
+    "date": "Date",
+    "time": "Time",
+    "duration": "How long?",
+    "notes": "Notes (optional)",
+    "hours_1": "1 hour",
+    "hours_1_5": "1.5 hours",
+    "hours_2": "2 hours",
+    "hours_2_5": "2.5 hours",
+    "hours_3": "3 hours",
+    "hours_4": "4 hours",
+    "hours_5": "5 hours",
+    "hours_6": "6 hours",
+    "hours_8": "8 hours",
+    "otherMinutes": "{{count}} minutes"
+  },
+  "detail": {
+    "title": "Appointment",
+    "when": "When",
+    "where": "Where",
+    "phone": "Phone",
+    "notes": "Notes",
+    "call": "Call",
+    "edit": "Edit appointment",
+    "cancel": "Cancel appointment"
+  },
+  "cancel": {
+    "title": "Cancel this appointment?",
+    "summary": "{{name}}, {{date}} at {{time}}",
+    "confirm": "Yes, cancel it",
+    "keep": "No, go back"
+  },
+  "notice": {
+    "saved": "The appointment was saved.",
+    "savedOverlap": "The appointment was saved, but it overlaps another one.",
+    "cancelled": "The appointment was cancelled."
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "No connection. Check your internet and try again.",
+    "invalid_credentials": "The email or password is not correct.",
+    "validation": "Please check the form: something is missing or not valid.",
+    "nonexistent_local_time": "That time does not exist on that day (clock change). Pick another time.",
+    "invalid_datetime": "The date or time is not valid.",
+    "not_found": "Appointment not found.",
+    "unauthenticated": "Your session ended. Please sign in again."
+  }
+}
