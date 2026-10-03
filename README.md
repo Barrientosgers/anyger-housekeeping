@@ -38,7 +38,7 @@ Mobile view with fake demo data.
 
 | Phase | Scope                                                                  | Status                                                   |
 | ----- | ---------------------------------------------------------------------- | -------------------------------------------------------- |
-| 1     | Git/GitHub, appointments, calendar, auth, tests, CI, deploy config     | built; deploy is a manual step ([guide](docs/deploy.md)) |
+| 1     | Git/GitHub, appointments, calendar, auth, tests, CI, deploy            | deployed; awaiting parent feedback |
 | 2     | Recurring cleanings (weekly / every 2 weeks / monthly), English toggle | planned                                                  |
 | 3     | Public booking requests, accept/decline, spam protection               | planned                                                  |
 | 4     | SMS to my father behind a swappable `SmsProvider`                      | planned                                                  |
