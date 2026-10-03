@@ -1,0 +1,32 @@
+{
+  "name": "anyger-housekeeping",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev:server": "npm run dev -w server",
+    "dev:web": "npm run dev -w web",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "build": "npm run build -w web && npm run build -w server",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test": "npm run test -w server && npm run test -w web",
+    "coverage": "npm run coverage -w server && npm run coverage -w web"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.9",
+    "typescript-eslint": "^8.71.0"
+  }
+}
