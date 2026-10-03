@@ -80,3 +80,11 @@ export const formatTime = (hhmm: string, lang: string) => {
     minute: '2-digit',
   }).format(new Date(Date.UTC(2000, 0, 1, h, m)));
 };
+
+/** "4 – 10 de octubre": a compact label for a week. */
+export const formatRange = (fromIso: string, toIso: string, lang: string) =>
+  new Intl.DateTimeFormat(locale(lang), {
+    timeZone: 'UTC',
+    day: 'numeric',
+    month: 'long',
+  }).formatRange(toUtc(fromIso), toUtc(toIso));

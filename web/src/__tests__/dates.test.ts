@@ -57,3 +57,10 @@ describe('date helpers', () => {
     expect(formatTime('13:30', 'es')).toMatch(/^1:30\sp\.\s?m\.$/);
   });
 });
+
+describe('week label', () => {
+  it('formats a compact range in Spanish with lowercase month', async () => {
+    const { formatRange } = await import('../dates');
+    expect(formatRange('2026-10-04', '2026-10-10', 'es')).toMatch(/^4\s?[–-]\s?10 de octubre$/);
+  });
+});

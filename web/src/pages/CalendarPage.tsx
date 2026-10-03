@@ -7,6 +7,7 @@ import {
   addMonths,
   formatLongDate,
   formatMonth,
+  formatRange,
   formatTime,
   formatWeekday,
   monthGrid,
@@ -63,10 +64,7 @@ export default function CalendarPage({ onLogout }: { onLogout: () => void }) {
   const step = (dir: 1 | -1) =>
     go(view, view === 'month' ? addMonths(date, dir) : addDays(date, 7 * dir));
 
-  const title =
-    view === 'month'
-      ? formatMonth(date, lang)
-      : `${formatLongDate(from, lang)} – ${formatLongDate(to, lang)}`;
+  const title = view === 'month' ? formatMonth(date, lang) : formatRange(from, to, lang);
 
   return (
     <main className="page">
