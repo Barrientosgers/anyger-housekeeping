@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api';
+import { LanguageToggle } from '../components';
 import { errorMessage } from '../errors';
 
 export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
@@ -26,7 +27,10 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
 
   return (
     <main className="page narrow">
-      <h1>{t('app.name')}</h1>
+      <div className="topbar">
+        <h1>{t('app.name')}</h1>
+        <LanguageToggle />
+      </div>
       <h2>{t('login.title')}</h2>
       <form onSubmit={submit}>
         <label>

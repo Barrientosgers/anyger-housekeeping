@@ -16,6 +16,7 @@ import {
   todayPacific,
   weekDays,
 } from '../dates';
+import { LanguageToggle } from '../components';
 import { errorMessage } from '../errors';
 
 type View = 'month' | 'week' | 'day';
@@ -80,9 +81,7 @@ export default function CalendarPage({ onLogout }: { onLogout: () => void }) {
     <main className="page">
       <header className="topbar">
         <h1>{t('calendar.title')}</h1>
-        <button className="btn quiet" onClick={onLogout}>
-          {t('nav.logout')}
-        </button>
+        <LanguageToggle />
       </header>
 
       {notice && (
@@ -165,7 +164,7 @@ export default function CalendarPage({ onLogout }: { onLogout: () => void }) {
                 {view === 'week' && <h3>{formatLongDate(d, lang)}</h3>}
                 {list.length === 0 && <p className="empty">{t('calendar.noAppointments')}</p>}
                 {list.map((a) => (
-                  <Link key={a.id} className="appt" to={`/appointment/${a.id}`}>
+                  <Link key={a.id} className="appt" to={`/appointment/${encodeURIComponent(a.id)}`}>
                     <strong>{formatTime(a.time, lang)}</strong>
                     <span>{a.clientName}</span>
                     <small>{a.address}</small>
@@ -176,6 +175,12 @@ export default function CalendarPage({ onLogout }: { onLogout: () => void }) {
           })}
         </div>
       )}
+
+      <footer className="page-footer">
+        <button className="btn quiet" onClick={onLogout}>
+          {t('nav.logout')}
+        </button>
+      </footer>
 
       <div className="bottombar">
         <button

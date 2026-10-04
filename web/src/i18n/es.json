@@ -1,5 +1,7 @@
 {
-  "app": { "name": "AnyGer's Housekeeping" },
+  "app": {
+    "name": "AnyGer's Housekeeping"
+  },
   "common": {
     "loading": "Cargando…",
     "back": "Volver",
@@ -13,7 +15,9 @@
     "password": "Contraseña",
     "submit": "Entrar"
   },
-  "nav": { "logout": "Salir" },
+  "nav": {
+    "logout": "Salir"
+  },
   "calendar": {
     "title": "Calendario",
     "month": "Mes",
@@ -47,7 +51,13 @@
     "hours_5": "5 horas",
     "hours_6": "6 horas",
     "hours_8": "8 horas",
-    "otherMinutes": "{{count}} minutos"
+    "otherMinutes": "{{count}} minutos",
+    "repeat": "¿Se repite?",
+    "repeat_none": "No se repite",
+    "repeat_weekly": "Cada semana",
+    "repeat_biweekly": "Cada 2 semanas",
+    "repeat_monthly": "Cada mes, el {{ordinal}} {{weekday}}",
+    "repeatUntil": "Repetir hasta (opcional)"
   },
   "detail": {
     "title": "Cita",
@@ -57,13 +67,18 @@
     "notes": "Notas",
     "call": "Llamar",
     "edit": "Editar cita",
-    "cancel": "Cancelar cita"
+    "cancel": "Cancelar cita",
+    "repeats": "Se repite",
+    "until": "{{repeat}}, hasta el {{date}}"
   },
   "cancel": {
     "title": "¿Cancelar esta cita?",
     "summary": "{{name}}, {{date}} a las {{time}}",
     "confirm": "Sí, cancelar la cita",
-    "keep": "No, volver"
+    "keep": "No, volver",
+    "titleSeries": "¿Cancelar esta cita que se repite?",
+    "thisOnly": "Cancelar solo esta cita",
+    "future": "Cancelar esta y las siguientes"
   },
   "notice": {
     "saved": "La cita se guardó.",
@@ -78,6 +93,22 @@
     "nonexistent_local_time": "Esa hora no existe ese día (cambio de hora). Elija otra hora.",
     "invalid_datetime": "La fecha u hora no es válida.",
     "not_found": "No se encontró la cita.",
-    "unauthenticated": "Su sesión terminó. Entre de nuevo."
+    "unauthenticated": "Su sesión terminó. Entre de nuevo.",
+    "scope_required": "Elija qué citas cambiar.",
+    "invalid_range": "Las fechas no son válidas."
+  },
+  "ordinal": {
+    "1": "primer",
+    "2": "segundo",
+    "3": "tercer",
+    "4": "cuarto",
+    "5": "último"
+  },
+  "scope": {
+    "title": "¿Qué quiere cambiar?",
+    "this": "Solo esta cita",
+    "future": "Esta y las siguientes",
+    "repeatNote": "Cambiar cómo se repite aplica a esta cita y a las siguientes.",
+    "back": "Volver"
   }
 }

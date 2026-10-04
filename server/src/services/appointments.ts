@@ -1,6 +1,13 @@
 import type pg from 'pg';
 import { z } from 'zod';
-import { addDays, type Freq, occurrenceDates, occursOn, type Rule } from '../domain/recurrence.js';
+import {
+  addDays,
+  type Freq,
+  occurrenceDates,
+  occursOn,
+  ordinalOf,
+  type Rule,
+} from '../domain/recurrence.js';
 import { localDaysToUtcRange, localToUtc, resolveLocal, utcToLocal } from '../domain/time.js';
 import { AppError } from '../errors.js';
 
@@ -60,6 +67,7 @@ interface Row {
   original_date: string | null;
   freq: Freq | null;
   until_date: string | null;
+  series_start: string | null;
 }
 
 interface SeriesRow {
@@ -81,7 +89,8 @@ export interface AppointmentDto {
   id: string;
   seriesId: string | null;
   originalDate: string | null;
-  recurrence: { freq: Freq; untilDate: string | null } | null;
+  /** `ordinal` is 1-4 ("2nd Tuesday") or 5 ("last Tuesday") for monthly series, else null. */
+  recurrence: { freq: Freq; untilDate: string | null; ordinal: number | null } | null;
   clientName: string;
   clientPhone: string | null;
   address: string;
@@ -94,7 +103,8 @@ export interface AppointmentDto {
 }
 
 const SELECT = `SELECT a.id, a.client_name, a.client_phone, a.address, a.starts_at, a.duration_min,
-    a.notes, a.status, a.series_id, a.original_date, s.freq, s.until_date
+    a.notes, a.status, a.series_id, a.original_date, s.freq, s.until_date,
+    s.start_date AS series_start
   FROM appointments a LEFT JOIN series s ON s.id = a.series_id`;
 
 const OCCURRENCE_ID = /^s:([0-9a-f-]{36}):(\d{4}-\d{2}-\d{2})$/;
@@ -117,7 +127,14 @@ export function toDto(row: Row): AppointmentDto {
     id: row.id,
     seriesId: row.series_id,
     originalDate: row.original_date,
-    recurrence: row.series_id && row.freq ? { freq: row.freq, untilDate: row.until_date } : null,
+    recurrence:
+      row.series_id && row.freq && row.series_start
+        ? {
+            freq: row.freq,
+            untilDate: row.until_date,
+            ordinal: row.freq === 'monthly' ? ordinalOf(row.series_start) : null,
+          }
+        : null,
     clientName: row.client_name,
     clientPhone: row.client_phone,
     address: row.address,
@@ -138,7 +155,11 @@ function virtualDto(s: SeriesRow, date: string, status: 'scheduled' | 'cancelled
     id: occurrenceId(s.id, date),
     seriesId: s.id,
     originalDate: date,
-    recurrence: { freq: s.freq, untilDate: s.until_date },
+    recurrence: {
+      freq: s.freq,
+      untilDate: s.until_date,
+      ordinal: s.freq === 'monthly' ? ordinalOf(s.start_date) : null,
+    },
     clientName: s.client_name,
     clientPhone: s.client_phone,
     address: s.address,

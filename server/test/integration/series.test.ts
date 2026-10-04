@@ -110,6 +110,22 @@ describe('creating a repeating series', () => {
   });
 });
 
+describe('monthly ordinal', () => {
+  it('exposes "2nd Tuesday" vs "last Tuesday" so the label is right', async () => {
+    await createSeries({ ...weekly, date: '2026-10-13', repeat: 'monthly', clientName: 'Second' });
+    await createSeries({ ...weekly, date: '2026-12-29', repeat: 'monthly', clientName: 'Last' });
+    const jan = await agent.get('/api/appointments?from=2027-01-01&to=2027-01-31').expect(200);
+    const byName = Object.fromEntries(
+      jan.body.appointments.map((v: { clientName: string; date: string; recurrence: object }) => [
+        v.clientName,
+        v,
+      ]),
+    );
+    expect(byName.Second).toMatchObject({ date: '2027-01-12', recurrence: { ordinal: 2 } });
+    expect(byName.Last).toMatchObject({ date: '2027-01-26', recurrence: { ordinal: 5 } }); // 4th by count, but "last"
+  });
+});
+
 describe('daylight saving', () => {
   it('a weekly 9:00 AM visit stays 9:00 local across fall back (UTC offset changes)', async () => {
     await createSeries({ ...weekly, date: '2026-10-27' });

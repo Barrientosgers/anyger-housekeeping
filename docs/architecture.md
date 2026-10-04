@@ -33,11 +33,12 @@ SQLite would perform fine at this data size (hundreds of rows a year). Postgres 
 
 Cost of the choice: one more moving part locally (Docker Compose) and a network hop. Accepted.
 
-## Data model (Phase 1)
+## Data model
 
 ```mermaid
 erDiagram
   users ||--o{ appointments : created_by
+  series ||--o{ appointments : exceptions
   users ||--o{ audit_log : user_id
   users {
     uuid id PK
@@ -56,6 +57,17 @@ erDiagram
     text notes
     text status
     uuid created_by FK
+  }
+  series {
+    uuid id PK
+    text client_name
+    text address
+    date start_date
+    text local_time
+    int duration_min
+    text freq
+    date until_date
+    text status
   }
   audit_log {
     bigint id PK
@@ -77,7 +89,7 @@ erDiagram
   }
 ```
 
-Planned: `series` and `series_exceptions` (Phase 2), `booking_requests` (Phase 3), `translations` (Phase 5).
+Phase 2 added `series` and two columns on `appointments` (`series_id`, `original_date`; see Recurrence below). Planned: `booking_requests` (Phase 3), `translations` (Phase 5).
 
 ## Key decisions and tradeoffs
 
@@ -90,9 +102,18 @@ Planned: `series` and `series_exceptions` (Phase 2), `booking_requests` (Phase 3
 - Range queries ask for whole Pacific days, so days are 23, 24, or 25 hours long around DST and tests assert this.
 - Tradeoff: the calendar is fixed to Pacific Time. Right for this business; a per-business time zone setting would be needed to generalize.
 
-### Recurrence (Phase 2 design, not yet built)
+### Recurrence (built in Phase 2)
 
-Store the **rule** (local wall-clock time + frequency + optional end), generate occurrences on demand for the visible window, and materialize only **exceptions** (edited or skipped dates). "Edit this one" writes an exception row; "edit this and future" splits the series. Generating from local wall-clock time then converting to UTC keeps a 9:00 AM cleaning at 9:00 AM across DST. Tradeoff: slightly more complex than pre-generating rows, but changing a series is one write and there is no unbounded row growth.
+- A **series** stores the rule: a Pacific start date, a wall-clock time (`"09:00"`), a frequency (`weekly`, `biweekly`, `monthly`), and an optional inclusive end date. Visits are **generated for the days on screen** (`domain/recurrence.ts`), not stored, so a series is one row however long it runs.
+- **Monthly means the same weekday of the month** (e.g. the 2nd Tuesday). A series that starts on the 29th-31st means "the last <weekday>", so no month is ever skipped. The API returns the ordinal so the label ("2nd" vs "last") is always right.
+- Only **exceptions** are stored: an edited or cancelled single visit is a row in `appointments` with `(series_id, original_date)`, unique per visit. When listing, a generated visit is dropped if an exception exists for its date, so a moved visit shows once, at its new time.
+- Two edit scopes, deliberately, to keep choices few for non-technical users: **only this one** (writes or updates an exception) and **this and the following**. The latter ends the old series the day before and starts a new one (or edits the series in place when started from the first visit); one-off edits after that point are replaced. "Edit the whole series" is "this and the following" from the first visit, and past visits are never rewritten.
+- **Daylight saving:** generation uses the stored wall-clock time, so 9:00 AM stays 9:00 AM while its UTC value shifts. A generated visit whose time does not exist that day (e.g. 02:30 on spring-forward) moves to the next valid time instead of failing; a time typed in by a person is still rejected. Tested at both transitions.
+- Tradeoffs: listing does a little more work than reading rows (fine at this scale), and "this and the following" discards later one-off edits (the same behaviour as common calendar apps, and called out in the UI by the question itself).
+
+### Language
+
+Spanish is the default. The one-tap toggle stores the choice **per device** in `localStorage` (guarded, since storage can be blocked), because both parents share one login and may prefer different languages. The server stays language-neutral: it returns error codes and the UI translates them. A test enforces that the Spanish and English files have identical keys.
 
 ### SMS abstraction (Phase 4)
 

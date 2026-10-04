@@ -310,3 +310,15 @@ textarea {
     order: 3;
   }
 }
+
+.topbar {
+  flex-wrap: wrap;
+}
+.page-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+.choice-note {
+  color: var(--muted);
+}

@@ -1,5 +1,11 @@
+export type Freq = 'weekly' | 'biweekly' | 'monthly';
+export type Scope = 'this' | 'future';
+
 export interface Appointment {
   id: string;
+  seriesId: string | null;
+  originalDate: string | null;
+  recurrence: { freq: Freq; untilDate: string | null; ordinal: number | null } | null;
   clientName: string;
   clientPhone: string | null;
   address: string;
@@ -19,6 +25,8 @@ export interface AppointmentInput {
   time: string;
   durationMin: number;
   notes: string;
+  repeat: 'none' | Freq;
+  repeatUntil: string;
 }
 
 export class ApiError extends Error {
@@ -57,6 +65,13 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   return data as T;
 }
 
+/** The form keeps repeatUntil as '' when blank; the API wants null. */
+const withRepeat = (input: AppointmentInput, scope?: Scope) => ({
+  ...input,
+  repeatUntil: input.repeat === 'none' || !input.repeatUntil ? null : input.repeatUntil,
+  ...(scope ? { scope } : {}),
+});
+
 type Saved = { appointment: Appointment; overlaps: number };
 
 export const api = {
@@ -66,10 +81,16 @@ export const api = {
   logout: () => request<void>('POST', '/api/auth/logout'),
   list: (from: string, to: string) =>
     request<{ appointments: Appointment[] }>('GET', `/api/appointments?from=${from}&to=${to}`),
-  get: (id: string) => request<{ appointment: Appointment }>('GET', `/api/appointments/${id}`),
-  create: (input: AppointmentInput) => request<Saved>('POST', '/api/appointments', input),
-  update: (id: string, input: AppointmentInput) =>
-    request<Saved>('PUT', `/api/appointments/${id}`, input),
-  cancel: (id: string) =>
-    request<{ appointment: Appointment }>('POST', `/api/appointments/${id}/cancel`),
+  get: (id: string) =>
+    request<{ appointment: Appointment }>('GET', `/api/appointments/${encodeURIComponent(id)}`),
+  create: (input: AppointmentInput) =>
+    request<Saved>('POST', '/api/appointments', withRepeat(input)),
+  update: (id: string, input: AppointmentInput, scope?: Scope) =>
+    request<Saved>('PUT', `/api/appointments/${encodeURIComponent(id)}`, withRepeat(input, scope)),
+  cancel: (id: string, scope?: Scope) =>
+    request<{ appointment: Appointment }>(
+      'POST',
+      `/api/appointments/${encodeURIComponent(id)}/cancel`,
+      scope ? { scope } : undefined,
+    ),
 };

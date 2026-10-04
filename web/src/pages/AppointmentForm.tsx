@@ -1,9 +1,10 @@
 import { type FormEvent, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { type AppointmentInput, api } from '../api';
-import { todayPacific } from '../dates';
+import { type Appointment, type AppointmentInput, type Freq, type Scope, api } from '../api';
+import { formatFullDate, formatTime, todayPacific } from '../dates';
 import { errorMessage } from '../errors';
+import { repeatLabel } from '../repeat';
 
 const DURATIONS: [number, string][] = [
   [60, 'hours_1'],
@@ -16,9 +17,11 @@ const DURATIONS: [number, string][] = [
   [360, 'hours_6'],
   [480, 'hours_8'],
 ];
+const FREQS: Freq[] = ['weekly', 'biweekly', 'monthly'];
 
 export default function AppointmentForm() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const navigate = useNavigate();
   const { id } = useParams();
   const [params] = useSearchParams();
@@ -32,16 +35,21 @@ export default function AppointmentForm() {
     time: '09:00',
     durationMin: 120,
     notes: '',
+    repeat: 'none',
+    repeatUntil: '',
   });
+  const [original, setOriginal] = useState<Appointment | null>(null);
   const [loading, setLoading] = useState(editing);
   const [busy, setBusy] = useState(false);
+  const [choosingScope, setChoosingScope] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
     api
       .get(id)
-      .then(({ appointment: a }) =>
+      .then(({ appointment: a }) => {
+        setOriginal(a);
         setForm({
           clientName: a.clientName,
           clientPhone: a.clientPhone ?? '',
@@ -50,8 +58,10 @@ export default function AppointmentForm() {
           time: a.time,
           durationMin: a.durationMin,
           notes: a.notes ?? '',
-        }),
-      )
+          repeat: a.recurrence?.freq ?? 'none',
+          repeatUntil: a.recurrence?.untilDate ?? '',
+        });
+      })
       .catch((err) => setError(errorMessage(t, err)))
       .finally(() => setLoading(false));
   }, [id, t]);
@@ -59,24 +69,65 @@ export default function AppointmentForm() {
   const set = <K extends keyof AppointmentInput>(key: K, value: AppointmentInput[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
 
-  async function submit(e: FormEvent) {
-    e.preventDefault();
+  const isSeries = Boolean(original?.recurrence);
+  // A standalone appointment keeps its own schedule; only new ones and series show the repeat choice.
+  const showRepeat = !editing || isSeries;
+  const repeatChanged =
+    isSeries &&
+    (form.repeat !== original?.recurrence?.freq ||
+      form.repeatUntil !== (original?.recurrence?.untilDate ?? ''));
+
+  async function save(scope?: Scope) {
     setBusy(true);
     setError(null);
     try {
-      const saved = id ? await api.update(id, form) : await api.create(form);
+      const saved = id ? await api.update(id, form, scope) : await api.create(form);
       navigate(`/?view=day&date=${saved.appointment.date}`, {
         state: { notice: saved.overlaps > 0 ? 'savedOverlap' : 'saved' },
       });
     } catch (err) {
       setError(errorMessage(t, err));
+      setChoosingScope(false);
       setBusy(false);
     }
+  }
+
+  function submit(e: FormEvent) {
+    e.preventDefault();
+    if (isSeries) setChoosingScope(true);
+    else void save();
   }
 
   const durationKnown = DURATIONS.some(([m]) => m === form.durationMin);
 
   if (loading) return <p className="status">{t('common.loading')}</p>;
+
+  if (choosingScope) {
+    return (
+      <main className="page narrow">
+        <h1>{t('scope.title')}</h1>
+        <p className="big">
+          {form.clientName}, {formatFullDate(form.date, lang)}, {formatTime(form.time, lang)}
+        </p>
+        {repeatChanged && <p className="choice-note">{t('scope.repeatNote')}</p>}
+        {!repeatChanged && (
+          <button className="btn primary" disabled={busy} onClick={() => void save('this')}>
+            {t('scope.this')}
+          </button>
+        )}
+        <button
+          className={repeatChanged ? 'btn primary' : 'btn'}
+          disabled={busy}
+          onClick={() => void save('future')}
+        >
+          {t('scope.future')}
+        </button>
+        <button className="btn" disabled={busy} onClick={() => setChoosingScope(false)}>
+          {t('scope.back')}
+        </button>
+      </main>
+    );
+  }
 
   return (
     <main className="page narrow">
@@ -145,6 +196,45 @@ export default function AppointmentForm() {
             ))}
           </select>
         </label>
+
+        {showRepeat && (
+          <>
+            <label>
+              {t('form.repeat')}
+              <select
+                value={form.repeat}
+                onChange={(e) => set('repeat', e.target.value as AppointmentInput['repeat'])}
+              >
+                <option value="none">{t('form.repeat_none')}</option>
+                {FREQS.map((f) => (
+                  <option key={f} value={f}>
+                    {repeatLabel(
+                      t,
+                      f,
+                      form.date,
+                      lang,
+                      f === 'monthly' && original?.recurrence?.freq === 'monthly'
+                        ? original.recurrence.ordinal
+                        : null,
+                    )}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {form.repeat !== 'none' && (
+              <label>
+                {t('form.repeatUntil')}
+                <input
+                  type="date"
+                  min={form.date}
+                  value={form.repeatUntil}
+                  onChange={(e) => set('repeatUntil', e.target.value)}
+                />
+              </label>
+            )}
+          </>
+        )}
+
         <label>
           {t('form.notes')}
           <textarea
