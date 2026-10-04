@@ -44,6 +44,7 @@ export default function CalendarPage({ onLogout }: { onLogout: () => void }) {
 
   const [appointments, setAppointments] = useState<Appointment[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pendingRequests, setPendingRequests] = useState(0);
 
   const load = useCallback(() => {
     setAppointments(null);
@@ -55,6 +56,13 @@ export default function CalendarPage({ onLogout }: { onLogout: () => void }) {
   }, [from, to, t]);
 
   useEffect(load, [load]);
+
+  useEffect(() => {
+    api
+      .requestCount()
+      .then((r) => setPendingRequests(r.pending))
+      .catch(() => undefined); // the banner is a convenience; the calendar works without it
+  }, []);
 
   const byDate = useMemo(() => {
     const map = new Map<string, Appointment[]>();
@@ -83,6 +91,12 @@ export default function CalendarPage({ onLogout }: { onLogout: () => void }) {
         <h1>{t('calendar.title')}</h1>
         <LanguageToggle />
       </header>
+
+      {pendingRequests > 0 && (
+        <button className="btn alert" onClick={() => navigate('/requests')}>
+          {t('requests.banner', { count: pendingRequests })}
+        </button>
+      )}
 
       {notice && (
         <p className="notice" role="status">
@@ -176,7 +190,10 @@ export default function CalendarPage({ onLogout }: { onLogout: () => void }) {
         </div>
       )}
 
-      <footer className="page-footer">
+      <footer className="page-footer footer-actions">
+        <button className="btn quiet" onClick={() => navigate('/requests')}>
+          {t('nav.requests')}
+        </button>
         <button className="btn quiet" onClick={onLogout}>
           {t('nav.logout')}
         </button>

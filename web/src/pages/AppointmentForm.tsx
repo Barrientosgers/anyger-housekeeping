@@ -19,13 +19,15 @@ const DURATIONS: [number, string][] = [
 ];
 const FREQS: Freq[] = ['weekly', 'biweekly', 'monthly'];
 
-export default function AppointmentForm() {
+/** `accept` reuses this form to turn a booking request into an appointment. */
+export default function AppointmentForm({ mode = 'normal' }: { mode?: 'normal' | 'accept' }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const navigate = useNavigate();
   const { id } = useParams();
   const [params] = useSearchParams();
-  const editing = Boolean(id);
+  const accepting = mode === 'accept';
+  const editing = Boolean(id) && !accepting;
 
   const [form, setForm] = useState<AppointmentInput>({
     clientName: '',
@@ -39,13 +41,33 @@ export default function AppointmentForm() {
     repeatUntil: '',
   });
   const [original, setOriginal] = useState<Appointment | null>(null);
-  const [loading, setLoading] = useState(editing);
+  const [loading, setLoading] = useState(Boolean(id));
   const [busy, setBusy] = useState(false);
   const [choosingScope, setChoosingScope] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
+    if (accepting) {
+      api
+        .getRequest(id)
+        .then(({ request: r }) =>
+          setForm({
+            clientName: r.clientName,
+            clientPhone: r.clientPhone,
+            address: r.address,
+            date: r.preferredDate,
+            time: r.preferredTime,
+            durationMin: 120,
+            notes: r.notes ?? '',
+            repeat: r.repeat,
+            repeatUntil: '',
+          }),
+        )
+        .catch((err) => setError(errorMessage(t, err)))
+        .finally(() => setLoading(false));
+      return;
+    }
     api
       .get(id)
       .then(({ appointment: a }) => {
@@ -64,7 +86,7 @@ export default function AppointmentForm() {
       })
       .catch((err) => setError(errorMessage(t, err)))
       .finally(() => setLoading(false));
-  }, [id, t]);
+  }, [id, accepting, t]);
 
   const set = <K extends keyof AppointmentInput>(key: K, value: AppointmentInput[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -81,10 +103,14 @@ export default function AppointmentForm() {
     setBusy(true);
     setError(null);
     try {
-      const saved = id ? await api.update(id, form, scope) : await api.create(form);
-      navigate(`/?view=day&date=${saved.appointment.date}`, {
-        state: { notice: saved.overlaps > 0 ? 'savedOverlap' : 'saved' },
-      });
+      const saved =
+        accepting && id
+          ? await api.acceptRequest(id, form)
+          : id
+            ? await api.update(id, form, scope)
+            : await api.create(form);
+      const notice = accepting ? 'requestAccepted' : saved.overlaps > 0 ? 'savedOverlap' : 'saved';
+      navigate(`/?view=day&date=${saved.appointment.date}`, { state: { notice } });
     } catch (err) {
       setError(errorMessage(t, err));
       setChoosingScope(false);
@@ -131,7 +157,10 @@ export default function AppointmentForm() {
 
   return (
     <main className="page narrow">
-      <h1>{editing ? t('form.editTitle') : t('form.newTitle')}</h1>
+      <h1>
+        {accepting ? t('requests.acceptTitle') : editing ? t('form.editTitle') : t('form.newTitle')}
+      </h1>
+      {accepting && <p>{t('requests.acceptHint')}</p>}
       <form onSubmit={submit}>
         <label>
           {t('form.clientName')}

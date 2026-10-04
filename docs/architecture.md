@@ -7,7 +7,7 @@ AnyGer's Housekeeping is **one Node app and one Postgres database**. The Express
 ```mermaid
 flowchart LR
   P["Parents' phone<br/>(React app, Spanish)"] -->|HTTPS| S
-  C["Clients (Phase 3)<br/>public booking form"] -->|HTTPS, rate limited| S
+  C["Clients<br/>public booking form (/book)"] -->|HTTPS, rate limited| S
   subgraph Render["Render free web service (Docker)"]
     S["Express API + static React build<br/>helmet, sessions, zod, pino"]
   end
@@ -46,6 +46,18 @@ erDiagram
     text password_hash
     text role
     text locale
+  }
+  booking_requests {
+    uuid id PK
+    text client_name
+    text client_phone
+    text address
+    date preferred_date
+    text preferred_time
+    text repeat
+    text status
+    uuid appointment_id FK
+    uuid series_id FK
   }
   appointments {
     uuid id PK
@@ -91,7 +103,7 @@ erDiagram
   }
 ```
 
-Phase 2 added `series` and two columns on `appointments` (`series_id`, `original_date`; see Recurrence below). Planned: `booking_requests` (Phase 3), `translations` (Phase 5).
+Phase 2 added `series` and two columns on `appointments` (`series_id`, `original_date`; see Recurrence below). Phase 3 added `booking_requests`. Planned: `translations` (Phase 5).
 
 ## Key decisions and tradeoffs
 
@@ -116,6 +128,16 @@ Phase 2 added `series` and two columns on `appointments` (`series_id`, `original
 ### Language
 
 Spanish is the default. The one-tap toggle stores the choice **per device** in `localStorage` (guarded, since storage can be blocked), because both parents share one login and may prefer different languages. The server stays language-neutral: it returns error codes and the UI translates them. A test enforces that the Spanish and English files have identical keys.
+
+### Public booking requests (built in Phase 3)
+
+- **Separate table, not a half-made appointment.** A request is only the client's wish (preferred date/time, frequency, notes, language). It is _not_ on the calendar and cannot clash with anything until the owners accept it.
+- **Accept creates the appointment from what the owners confirm**, via the same code path as a normal new appointment (so repeating requests become series). The form is the existing appointment form in an `accept` mode, prefilled, so there is one place that validates schedules.
+- **Atomic claim.** Accepting runs `UPDATE ... WHERE status = 'pending'` first, so two people tapping at once cannot create two appointments; if creating the appointment then fails, the request is put back to pending.
+- **Layered spam defense** because the form is open to the internet and a CAPTCHA would add friction for older clients: strict validation, hidden honeypot (a filled trap is silently dropped, so the bot learns nothing), 5/hour/IP rate limit, a hard cap of 100 pending requests, small body limit. Tradeoff: this stops casual bots and floods, not a determined distributed attacker; Cloudflare Turnstile (free) is the next step if real spam appears.
+- **Short-lived personal data.** Decided requests are deleted after 30 days and unanswered ones after 60; a purge runs at startup and every 12 hours (the free host sleeps, so waking also purges).
+- **Language travels with the request.** The client's language is stored so Phase 5 can translate their notes the right way.
+- **Public route boundary.** `/book` is the only unauthenticated page; everything else, including every `/api/requests` route, sits behind `requireAuth`. Tests assert 401s for each owner route.
 
 ### SMS abstraction (Phase 4)
 

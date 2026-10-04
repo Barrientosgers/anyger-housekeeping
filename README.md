@@ -3,7 +3,7 @@
 A calm, Spanish-first scheduling app that replaces a paper calendar for a small family house-cleaning business. Built for my parents, who are not tech-savvy, and engineered like production software: tested, secured, deployed, and documented.
 
 **Live:** https://anyger-housekeeping.onrender.com (free hosting; the first load after idle can take 30-60 seconds)
-**Status:** Phase 2 of 6 built (recurring cleanings + English toggle). See the roadmap below.
+**Status:** Phase 3 of 6 built (public booking requests). See the roadmap below.
 
 ## Who it's for
 
@@ -31,14 +31,21 @@ Phase 2: repeating, choosing what to change, and English.
 | ------------------------------------------------ | ----------------------------------------------- | ------------------------------------------------ |
 | ![Repeat options](docs/screenshots/6-repeat.png) | ![Scope question](docs/screenshots/8-scope.png) | ![English month](docs/screenshots/9-english.png) |
 
-## What works today (Phases 1-2)
+Phase 3: the public form and the owners' review screens.
+
+| Public form (Spanish)                            | New-request banner                        | A request                                          |
+| ------------------------------------------------ | ----------------------------------------- | -------------------------------------------------- |
+| ![Booking form](docs/screenshots/10-booking.png) | ![Banner](docs/screenshots/11-banner.png) | ![Request](docs/screenshots/13-request-detail.png) |
+
+## What works today (Phases 1-3)
 
 - Create, edit, and cancel an appointment (client, address, phone, date, time, duration, notes). Cancelling asks "are you sure?" first.
 - Calendar home screen with **month**, **week** and **day** views. Tapping a day in the month opens that day with its list of clients (feedback from the first real users).
 - Overlapping appointments save, with a plain warning (a crew may work in parallel).
 - **Recurring cleanings:** every week, every 2 weeks, or every month on the same weekday (e.g. the 2nd Tuesday), with an optional end date. Editing or cancelling asks "only this one" or "this and the following".
 - **Spanish and English** with a one-tap toggle. Spanish is the default; each phone remembers its own choice.
-- Login required for everything. Sessions last 90 days so the parents rarely sign in.
+- **Booking requests:** clients fill in a public form at `/book` (Spanish or English). Requests wait as "pending" until the owners **Aceptar** (the form opens prefilled so they can adjust the date or time, and it becomes an appointment or repeating series) or **Rechazar**. A banner on the calendar shows how many are waiting. Spam is handled by a hidden trap field, a rate limit, and a cap on pending requests; old requests are deleted automatically.
+- Login required for everything except the booking form. Sessions last 90 days so the parents rarely sign in.
 - Times are stored in UTC and shown in Pacific Time. Repeating visits keep their wall-clock time across daylight-saving changes (tested).
 
 ## Roadmap
@@ -46,8 +53,8 @@ Phase 2: repeating, choosing what to change, and English.
 | Phase | Scope                                                                  | Status                          |
 | ----- | ---------------------------------------------------------------------- | ------------------------------- |
 | 1     | Git/GitHub, appointments, calendar, auth, tests, CI, deploy            | deployed and in use             |
-| 2     | Recurring cleanings (weekly / every 2 weeks / monthly), English toggle | built; awaiting parent feedback |
-| 3     | Public booking requests, accept/decline, spam protection               | planned                         |
+| 2     | Recurring cleanings (weekly / every 2 weeks / monthly), English toggle | deployed and in use             |
+| 3     | Public booking requests, accept/decline, spam protection               | built; awaiting parent feedback |
 | 4     | SMS to my father behind a swappable `SmsProvider`                      | planned                         |
 | 5     | Claude API translation, original always kept, graceful fallback        | planned                         |
 | 6     | Public-repo hardening: history scan, metrics write-up                  | planned                         |
@@ -89,12 +96,12 @@ npm test            # server + web (needs `npm run db:up`)
 npm run coverage    # with coverage report
 ```
 
-## Quality, with real numbers (measured after Phase 2)
+## Quality, with real numbers (measured after Phase 3)
 
 |                                 | Tests | Line coverage | Branch coverage |
 | ------------------------------- | ----- | ------------- | --------------- |
-| Server (unit + API integration) | 76    | 93.6%         | 86.3%           |
-| Web (unit + component)          | 36    | 87.6%         | 88.7%           |
+| Server (unit + API integration) | 98    | 93.6%         | 85.4%           |
+| Web (unit + component)          | 51    | 90.6%         | 91.3%           |
 
 CI passes on GitHub Actions. Coverage will be re-measured each phase; these numbers are not targets, only what was measured.
 

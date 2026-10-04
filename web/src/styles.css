@@ -315,10 +315,32 @@ textarea {
   flex-wrap: wrap;
 }
 .page-footer {
-  display: flex;
-  justify-content: center;
   margin-top: 1.5rem;
 }
 .choice-note {
   color: var(--muted);
+}
+
+/* Public booking form */
+.hp {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.btn.alert {
+  background: var(--warn-bg);
+  border-color: #8a5a00;
+  color: #4a3000;
+}
+.small-print {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.footer-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
 }

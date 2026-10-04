@@ -39,8 +39,8 @@ Bilingual (Spanish default / English) scheduling app for my parents' house-clean
 ## Phases
 
 1. Git/GitHub, appointments + calendar (Spanish), auth, tests, CI, deploy (done, live)
-2. Recurrence + English toggle (built)
-3. Public booking requests
+2. Recurrence + English toggle (done, live)
+3. Public booking requests (built)
 4. SMS
 5. AI translation
 6. Public-repo hardening, metrics write-up

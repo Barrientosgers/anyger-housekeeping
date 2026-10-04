@@ -16,7 +16,8 @@
     "submit": "Sign in"
   },
   "nav": {
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "requests": "Requests"
   },
   "calendar": {
     "title": "Calendar",
@@ -57,7 +58,8 @@
     "repeat_weekly": "Every week",
     "repeat_biweekly": "Every 2 weeks",
     "repeat_monthly": "Every month, on the {{ordinal}} {{weekday}}",
-    "repeatUntil": "Repeat until (optional)"
+    "repeatUntil": "Repeat until (optional)",
+    "repeat_monthlyPlain": "Every month"
   },
   "detail": {
     "title": "Appointment",
@@ -83,7 +85,9 @@
   "notice": {
     "saved": "The appointment was saved.",
     "savedOverlap": "The appointment was saved, but it overlaps another one.",
-    "cancelled": "The appointment was cancelled."
+    "cancelled": "The appointment was cancelled.",
+    "requestAccepted": "Request accepted. The appointment was saved.",
+    "requestDeclined": "Request declined."
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -95,7 +99,10 @@
     "not_found": "Appointment not found.",
     "unauthenticated": "Your session ended. Please sign in again.",
     "scope_required": "Choose which appointments to change.",
-    "invalid_range": "The dates are not valid."
+    "invalid_range": "The dates are not valid.",
+    "busy": "There are many requests right now. Please try later or call us.",
+    "rate_limited": "Too many attempts. Please try again later.",
+    "already_decided": "This request was already answered."
   },
   "ordinal": {
     "1": "1st",
@@ -110,5 +117,45 @@
     "future": "This and the following ones",
     "repeatNote": "Changing how it repeats applies to this appointment and the following ones.",
     "back": "Back"
+  },
+  "book": {
+    "title": "Request a cleaning",
+    "intro": "Fill in this form and we will contact you to confirm.",
+    "name": "Your name",
+    "phone": "Your phone number",
+    "address": "Address for the cleaning",
+    "date": "Preferred date",
+    "time": "Preferred time",
+    "repeat": "How often?",
+    "once": "Just once",
+    "notes": "Anything else we should know? (optional)",
+    "submit": "Send request",
+    "sending": "Sending…",
+    "privacy": "We use your information only to schedule your cleaning and contact you.",
+    "thanksTitle": "Thank you!",
+    "thanksBody": "We received your request. We will call you soon to confirm."
+  },
+  "requests": {
+    "title": "Requests",
+    "empty": "No pending requests.",
+    "banner_one": "You have {{count}} new request",
+    "banner_other": "You have {{count}} new requests",
+    "detailTitle": "Request",
+    "wants": "Wants",
+    "where": "Where",
+    "phone": "Phone",
+    "notes": "Notes",
+    "received": "Received {{date}}",
+    "clientLang": "Client language",
+    "es": "Español",
+    "en": "English",
+    "once": "Just once",
+    "accept": "Accept",
+    "decline": "Decline",
+    "declineTitle": "Decline this request?",
+    "declineConfirm": "Yes, decline",
+    "declineKeep": "No, go back",
+    "acceptTitle": "Accept request",
+    "acceptHint": "Check the details and change the date or time if needed."
   }
 }
