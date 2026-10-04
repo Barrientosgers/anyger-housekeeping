@@ -57,6 +57,8 @@ erDiagram
     text notes
     text status
     uuid created_by FK
+    uuid series_id FK
+    date original_date
   }
   series {
     uuid id PK
