@@ -65,13 +65,40 @@ describe('calendar home screen', () => {
     expect(screen.getByRole('button', { name: '+ Nueva cita' })).toBeInTheDocument();
   });
 
-  it('tapping a day shows that week with the client and time as a large link', async () => {
+  it('tapping a day opens that exact day with its clients, not the whole week', async () => {
     renderAt('/');
     await userEvent.click(await screen.findByRole('button', { name: /10 de junio/i }));
+    expect(
+      await screen.findByRole('heading', { name: 'miércoles, 10 de junio de 2026' }),
+    ).toBeInTheDocument();
     const link = await screen.findByRole('link', { name: /María García/ });
     expect(link).toHaveAttribute('href', `/appointment/${appt.id}`);
     expect(link).toHaveTextContent(/9:00\sa\.\s?m\./);
+    expect(screen.getByRole('button', { name: 'Día' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByText('Sin citas')).not.toBeInTheDocument();
+    // The list was requested for that single day only.
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/appointments?from=2026-06-10&to=2026-06-10',
+      expect.anything(),
+    );
+  });
+
+  it('shows "Sin citas" on an empty day and steps one day at a time', async () => {
+    renderAt('/?view=day&date=2026-06-11');
+    expect(await screen.findByText('Sin citas')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: '← Anterior' }));
+    expect(await screen.findByRole('link', { name: /María García/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'miércoles, 10 de junio de 2026' }),
+    ).toBeInTheDocument();
+  });
+
+  it('the Semana button still shows the whole week', async () => {
+    renderAt('/?view=day&date=2026-06-10');
+    await userEvent.click(await screen.findByRole('button', { name: 'Semana' }));
+    expect(await screen.findByRole('heading', { name: '7–13 de junio' })).toBeInTheDocument();
     expect(screen.getAllByText('Sin citas').length).toBeGreaterThan(0);
+    expect(screen.getByRole('link', { name: /María García/ })).toBeInTheDocument();
   });
 
   it('shows a plain-language error with a retry button when loading fails', async () => {

@@ -65,7 +65,7 @@ export default function AppointmentForm() {
     setError(null);
     try {
       const saved = id ? await api.update(id, form) : await api.create(form);
-      navigate(`/?view=week&date=${saved.appointment.date}`, {
+      navigate(`/?view=day&date=${saved.appointment.date}`, {
         state: { notice: saved.overlaps > 0 ? 'savedOverlap' : 'saved' },
       });
     } catch (err) {

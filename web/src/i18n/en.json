@@ -18,6 +18,7 @@
     "title": "Calendar",
     "month": "Month",
     "week": "Week",
+    "day": "Day",
     "previous": "← Previous",
     "next": "Next →",
     "today": "Today",

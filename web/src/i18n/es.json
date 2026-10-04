@@ -18,6 +18,7 @@
     "title": "Calendario",
     "month": "Mes",
     "week": "Semana",
+    "day": "Día",
     "previous": "← Anterior",
     "next": "Siguiente →",
     "today": "Hoy",

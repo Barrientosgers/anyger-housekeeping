@@ -25,7 +25,7 @@ export default function CancelAppointment() {
     setBusy(true);
     try {
       const { appointment } = await api.cancel(id);
-      navigate(`/?view=week&date=${appointment.date}`, { state: { notice: 'cancelled' } });
+      navigate(`/?view=day&date=${appointment.date}`, { state: { notice: 'cancelled' } });
     } catch (err) {
       setError(errorMessage(t, err));
       setBusy(false);

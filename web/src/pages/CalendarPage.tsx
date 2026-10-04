@@ -5,6 +5,7 @@ import { type Appointment, api } from '../api';
 import {
   addDays,
   addMonths,
+  formatFullDate,
   formatLongDate,
   formatMonth,
   formatRange,
@@ -17,7 +18,7 @@ import {
 } from '../dates';
 import { errorMessage } from '../errors';
 
-type View = 'month' | 'week';
+type View = 'month' | 'week' | 'day';
 
 export default function CalendarPage({ onLogout }: { onLogout: () => void }) {
   const { t, i18n } = useTranslation();
@@ -27,13 +28,14 @@ export default function CalendarPage({ onLogout }: { onLogout: () => void }) {
   const [params, setParams] = useSearchParams();
   const today = todayPacific();
 
-  const view: View = params.get('view') === 'week' ? 'week' : 'month';
+  const viewParam = params.get('view');
+  const view: View = viewParam === 'week' || viewParam === 'day' ? viewParam : 'month';
   const dateParam = params.get('date');
   const date = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : today;
   const notice = (location.state as { notice?: string } | null)?.notice;
 
   const days = useMemo(
-    () => (view === 'month' ? monthGrid(date).flat() : weekDays(date)),
+    () => (view === 'month' ? monthGrid(date).flat() : view === 'week' ? weekDays(date) : [date]),
     [view, date],
   );
   const from = days[0]!;
@@ -62,9 +64,17 @@ export default function CalendarPage({ onLogout }: { onLogout: () => void }) {
   const go = (nextView: View, nextDate: string) =>
     setParams({ view: nextView, date: nextDate }, { replace: true });
   const step = (dir: 1 | -1) =>
-    go(view, view === 'month' ? addMonths(date, dir) : addDays(date, 7 * dir));
+    go(
+      view,
+      view === 'month' ? addMonths(date, dir) : addDays(date, view === 'week' ? 7 * dir : dir),
+    );
 
-  const title = view === 'month' ? formatMonth(date, lang) : formatRange(from, to, lang);
+  const title =
+    view === 'month'
+      ? formatMonth(date, lang)
+      : view === 'week'
+        ? formatRange(from, to, lang)
+        : formatFullDate(date, lang);
 
   return (
     <main className="page">
@@ -87,6 +97,9 @@ export default function CalendarPage({ onLogout }: { onLogout: () => void }) {
         </button>
         <button className="btn" aria-pressed={view === 'week'} onClick={() => go('week', date)}>
           {t('calendar.week')}
+        </button>
+        <button className="btn" aria-pressed={view === 'day'} onClick={() => go('day', date)}>
+          {t('calendar.day')}
         </button>
       </div>
 
@@ -133,7 +146,7 @@ export default function CalendarPage({ onLogout }: { onLogout: () => void }) {
                 key={d}
                 className={classes}
                 aria-label={`${formatLongDate(d, lang)}: ${t('calendar.count', { count })}`}
-                onClick={() => go('week', d)}
+                onClick={() => go('day', d)}
               >
                 <span className="num">{Number(d.slice(8))}</span>
                 {count > 0 && <span className="badge">{count}</span>}
@@ -143,13 +156,13 @@ export default function CalendarPage({ onLogout }: { onLogout: () => void }) {
         </div>
       )}
 
-      {appointments && view === 'week' && (
+      {appointments && view !== 'month' && (
         <div className="week">
           {days.map((d) => {
             const list = byDate.get(d) ?? [];
             return (
               <section key={d} className={`daycard${d === today ? ' today' : ''}`}>
-                <h3>{formatLongDate(d, lang)}</h3>
+                {view === 'week' && <h3>{formatLongDate(d, lang)}</h3>}
                 {list.length === 0 && <p className="empty">{t('calendar.noAppointments')}</p>}
                 {list.map((a) => (
                   <Link key={a.id} className="appt" to={`/appointment/${a.id}`}>
@@ -167,7 +180,7 @@ export default function CalendarPage({ onLogout }: { onLogout: () => void }) {
       <div className="bottombar">
         <button
           className="btn primary"
-          onClick={() => navigate(`/new?date=${view === 'week' ? date : today}`)}
+          onClick={() => navigate(`/new?date=${view === 'month' ? today : date}`)}
         >
           {t('calendar.newAppointment')}
         </button>

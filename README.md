@@ -28,7 +28,7 @@ Mobile view with fake demo data.
 ## What works today (Phase 1)
 
 - Create, edit, and cancel an appointment (client, address, phone, date, time, duration, notes). Cancelling asks "are you sure?" first.
-- Calendar home screen with **month** and **week** views, "today", previous/next.
+- Calendar home screen with **month**, **week** and **day** views. Tapping a day in the month opens that day with its list of clients (feedback from the first real users).
 - Overlapping appointments save, with a plain warning (a crew may work in parallel).
 - Spanish UI (English strings are already in place; the one-tap toggle arrives in Phase 2).
 - Login required for everything. Sessions last 90 days so the parents rarely sign in.
@@ -36,14 +36,14 @@ Mobile view with fake demo data.
 
 ## Roadmap
 
-| Phase | Scope                                                                  | Status                                                   |
-| ----- | ---------------------------------------------------------------------- | -------------------------------------------------------- |
+| Phase | Scope                                                                  | Status                             |
+| ----- | ---------------------------------------------------------------------- | ---------------------------------- |
 | 1     | Git/GitHub, appointments, calendar, auth, tests, CI, deploy            | deployed; awaiting parent feedback |
-| 2     | Recurring cleanings (weekly / every 2 weeks / monthly), English toggle | planned                                                  |
-| 3     | Public booking requests, accept/decline, spam protection               | planned                                                  |
-| 4     | SMS to my father behind a swappable `SmsProvider`                      | planned                                                  |
-| 5     | Claude API translation, original always kept, graceful fallback        | planned                                                  |
-| 6     | Public-repo hardening: history scan, metrics write-up                  | planned                                                  |
+| 2     | Recurring cleanings (weekly / every 2 weeks / monthly), English toggle | planned                            |
+| 3     | Public booking requests, accept/decline, spam protection               | planned                            |
+| 4     | SMS to my father behind a swappable `SmsProvider`                      | planned                            |
+| 5     | Claude API translation, original always kept, graceful fallback        | planned                            |
+| 6     | Public-repo hardening: history scan, metrics write-up                  | planned                            |
 
 ## Tech stack
 

@@ -20,7 +20,7 @@ export default function AppointmentDetail() {
       .catch((err) => setError(errorMessage(t, err)));
   }, [id, t]);
 
-  const back = () => navigate(appt ? `/?view=week&date=${appt.date}` : '/');
+  const back = () => navigate(appt ? `/?view=day&date=${appt.date}` : '/');
 
   if (error)
     return (
