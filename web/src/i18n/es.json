@@ -1,0 +1,83 @@
+{
+  "app": { "name": "AnyGer's Housekeeping" },
+  "common": {
+    "loading": "Cargando…",
+    "back": "Volver",
+    "retry": "Intentar de nuevo",
+    "save": "Guardar",
+    "saving": "Guardando…"
+  },
+  "login": {
+    "title": "Entrar",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "submit": "Entrar"
+  },
+  "nav": { "logout": "Salir" },
+  "calendar": {
+    "title": "Calendario",
+    "month": "Mes",
+    "week": "Semana",
+    "day": "Día",
+    "previous": "← Anterior",
+    "next": "Siguiente →",
+    "today": "Hoy",
+    "newAppointment": "+ Nueva cita",
+    "noAppointments": "Sin citas",
+    "count_one": "{{count}} cita",
+    "count_other": "{{count}} citas",
+    "viewSwitch": "Cambiar vista"
+  },
+  "form": {
+    "newTitle": "Nueva cita",
+    "editTitle": "Editar cita",
+    "clientName": "Nombre del cliente",
+    "clientPhone": "Teléfono (opcional)",
+    "address": "Dirección",
+    "date": "Fecha",
+    "time": "Hora",
+    "duration": "¿Cuánto dura?",
+    "notes": "Notas (opcional)",
+    "hours_1": "1 hora",
+    "hours_1_5": "1 hora y media",
+    "hours_2": "2 horas",
+    "hours_2_5": "2 horas y media",
+    "hours_3": "3 horas",
+    "hours_4": "4 horas",
+    "hours_5": "5 horas",
+    "hours_6": "6 horas",
+    "hours_8": "8 horas",
+    "otherMinutes": "{{count}} minutos"
+  },
+  "detail": {
+    "title": "Cita",
+    "when": "Cuándo",
+    "where": "Dónde",
+    "phone": "Teléfono",
+    "notes": "Notas",
+    "call": "Llamar",
+    "edit": "Editar cita",
+    "cancel": "Cancelar cita"
+  },
+  "cancel": {
+    "title": "¿Cancelar esta cita?",
+    "summary": "{{name}}, {{date}} a las {{time}}",
+    "confirm": "Sí, cancelar la cita",
+    "keep": "No, volver"
+  },
+  "notice": {
+    "saved": "La cita se guardó.",
+    "savedOverlap": "La cita se guardó, pero se cruza con otra cita.",
+    "cancelled": "La cita se canceló."
+  },
+  "errors": {
+    "generic": "Algo salió mal. Intente de nuevo.",
+    "network": "No hay conexión. Revise su internet e intente de nuevo.",
+    "invalid_credentials": "El correo o la contraseña no es correcto.",
+    "validation": "Revise los datos: falta algo o no es válido.",
+    "nonexistent_local_time": "Esa hora no existe ese día (cambio de hora). Elija otra hora.",
+    "invalid_datetime": "La fecha u hora no es válida.",
+    "not_found": "No se encontró la cita.",
+    "unauthenticated": "Su sesión terminó. Entre de nuevo."
+  }
+}
