@@ -1,6 +1,12 @@
 import type pg from 'pg';
 
-export type UsageEvent = 'appointments_created' | 'appointments_cancelled' | 'series_created';
+export type UsageEvent =
+  | 'appointments_created'
+  | 'appointments_cancelled'
+  | 'series_created'
+  | 'requests_received'
+  | 'requests_accepted'
+  | 'requests_declined';
 
 /** Anonymous daily counters: event name + date + count. No user or client identifiers. */
 export async function countUsage(pool: pg.Pool, event: UsageEvent): Promise<void> {

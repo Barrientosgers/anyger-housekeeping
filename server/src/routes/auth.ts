@@ -1,9 +1,9 @@
 import { hash, verify } from '@node-rs/argon2';
 import { Router } from 'express';
-import rateLimit from 'express-rate-limit';
 import type pg from 'pg';
 import { z } from 'zod';
 import { AppError } from '../errors.js';
+import { makeLimiter } from '../middleware/limits.js';
 import { audit } from '../services/usage.js';
 
 // Verified when the email is unknown so response time doesn't reveal which emails exist.
@@ -16,9 +16,7 @@ const loginBody = z.object({
 
 export function authRouter(pool: pg.Pool, opts: { rateLimit: boolean }) {
   const router = Router();
-  const limiter = opts.rateLimit
-    ? rateLimit({ windowMs: 15 * 60_000, limit: 10, standardHeaders: true, legacyHeaders: false })
-    : (_req: unknown, _res: unknown, next: () => void) => next();
+  const limiter = makeLimiter(opts.rateLimit, 15 * 60_000, 10);
 
   router.post('/login', limiter, async (req, res, next) => {
     try {

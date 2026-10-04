@@ -15,10 +15,18 @@ import type { Logger } from './logger.js';
 import { requireAuth, requireCsrfHeader } from './middleware/security.js';
 import { appointmentsRouter } from './routes/appointments.js';
 import { authRouter } from './routes/auth.js';
+import { publicRouter } from './routes/public.js';
+import { requestsRouter } from './routes/requests.js';
 
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
 
-export function createApp(deps: { config: Config; pool: pg.Pool; logger: Logger }) {
+export function createApp(deps: {
+  config: Config;
+  pool: pg.Pool;
+  logger: Logger;
+  /** Defaults to on everywhere except tests; a test can force it on to check the limits. */
+  rateLimit?: boolean;
+}) {
   const { config, pool, logger } = deps;
   const production = config.NODE_ENV === 'production';
   const app = express();
@@ -70,8 +78,10 @@ export function createApp(deps: { config: Config; pool: pg.Pool; logger: Logger 
     requireCsrfHeader,
   );
 
-  const isTest = config.NODE_ENV === 'test';
-  app.use('/api/auth', authRouter(pool, { rateLimit: !isTest }));
+  const limits = deps.rateLimit ?? config.NODE_ENV !== 'test';
+  app.use('/api/auth', authRouter(pool, { rateLimit: limits }));
+  app.use('/api/public', publicRouter(pool, { rateLimit: limits }));
+  app.use('/api/requests', requireAuth, requestsRouter(pool));
   app.use('/api/appointments', requireAuth, appointmentsRouter(pool));
   app.use('/api', (_req, _res, next) => next(new AppError(404, 'not_found')));
 

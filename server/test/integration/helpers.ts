@@ -10,16 +10,23 @@ export const TEST_EMAIL = 'tester@example.com';
 export const TEST_PASSWORD = 'correct horse battery staple';
 export const CSRF = { 'X-Requested-With': 'anyger' };
 
-export async function setup() {
+export async function setup(opts: { rateLimit?: boolean } = {}) {
   const config = loadConfig();
   const pool = createPool(config.DATABASE_URL, false);
   await migrate(pool);
-  const app = createApp({ config, pool, logger: createLogger('silent') });
+  const app = createApp({
+    config,
+    pool,
+    logger: createLogger('silent'),
+    rateLimit: opts.rateLimit,
+  });
   return { pool, app };
 }
 
 export async function resetDb(pool: ReturnType<typeof createPool>) {
-  await pool.query('TRUNCATE appointments, audit_log, usage_counters, sessions, users CASCADE');
+  await pool.query(
+    'TRUNCATE booking_requests, appointments, series, audit_log, usage_counters, sessions, users CASCADE',
+  );
   await pool.query('INSERT INTO users (email, password_hash) VALUES ($1, $2)', [
     TEST_EMAIL,
     await hash(TEST_PASSWORD),
