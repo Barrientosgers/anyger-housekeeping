@@ -44,3 +44,14 @@ export function localDaysToUtcRange(fromDate: string, toDate: string): [Date, Da
   if (!start.isValid || !end.isValid) throw new TimeError('invalid_datetime', 'Invalid date range');
   return [start.toUTC().toJSDate(), end.toUTC().toJSDate()];
 }
+
+/**
+ * Like localToUtc, but for generated recurring visits: a time skipped by spring forward is
+ * moved to the next valid time (02:30 becomes 03:30) instead of being rejected, so a weekly
+ * 02:30 cleaning still happens on that day. Ambiguous fall-back times use the first occurrence.
+ */
+export function resolveLocal(date: string, time: string): Date {
+  const local = DateTime.fromISO(`${date}T${time}`, { zone: TIME_ZONE });
+  if (!local.isValid) throw new TimeError('invalid_datetime', `Invalid date/time: ${date} ${time}`);
+  return local.toUTC().toJSDate();
+}
