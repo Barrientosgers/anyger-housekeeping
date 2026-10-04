@@ -17,9 +17,9 @@ There is deliberately **no "today's work" dashboard**. The calendar is the home 
 
 Mobile view with fake demo data.
 
-| Login                                  | Month                                           | Week                                      |
-| -------------------------------------- | ----------------------------------------------- | ----------------------------------------- |
-| ![Login](docs/screenshots/1-login.png) | ![Month calendar](docs/screenshots/2-month.png) | ![Week list](docs/screenshots/3-week.png) |
+| Login                                  | Month                                           | Day                                     |
+| -------------------------------------- | ----------------------------------------------- | --------------------------------------- |
+| ![Login](docs/screenshots/1-login.png) | ![Month calendar](docs/screenshots/2-month.png) | ![Day list](docs/screenshots/3-day.png) |
 
 | Appointment                                          | New appointment                      |
 | ---------------------------------------------------- | ------------------------------------ |
