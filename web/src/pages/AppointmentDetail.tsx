@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { type Appointment, api } from '../api';
 import { formatFullDate, formatTime } from '../dates';
 import { errorMessage } from '../errors';
+import { repeatLabel } from '../repeat';
 
 export default function AppointmentDetail() {
   const { t, i18n } = useTranslation();
@@ -35,6 +36,17 @@ export default function AppointmentDetail() {
     );
   if (!appt) return <p className="status">{t('common.loading')}</p>;
 
+  const rec = appt.recurrence;
+  const repeatText = rec
+    ? (() => {
+        const base = repeatLabel(t, rec.freq, appt.originalDate ?? appt.date, lang, rec.ordinal);
+        return rec.untilDate
+          ? t('detail.until', { repeat: base, date: formatFullDate(rec.untilDate, lang) })
+          : base;
+      })()
+    : null;
+  const key = encodeURIComponent(appt.id);
+
   return (
     <main className="page narrow">
       <h1>{appt.clientName}</h1>
@@ -44,6 +56,12 @@ export default function AppointmentDetail() {
         <dd>
           {formatFullDate(appt.date, lang)}, {formatTime(appt.time, lang)}
         </dd>
+        {repeatText && (
+          <>
+            <dt>{t('detail.repeats')}</dt>
+            <dd>{repeatText}</dd>
+          </>
+        )}
         <dt>{t('detail.where')}</dt>
         <dd>{appt.address}</dd>
         {appt.clientPhone && (
@@ -66,10 +84,10 @@ export default function AppointmentDetail() {
       </dl>
       {appt.status === 'scheduled' && (
         <>
-          <Link className="btn primary" to={`/appointment/${appt.id}/edit`}>
+          <Link className="btn primary" to={`/appointment/${key}/edit`}>
             {t('detail.edit')}
           </Link>
-          <Link className="btn danger" to={`/appointment/${appt.id}/cancel`}>
+          <Link className="btn danger" to={`/appointment/${key}/cancel`}>
             {t('detail.cancel')}
           </Link>
         </>

@@ -8,13 +8,16 @@ import {
   cancelAppointment,
   createAppointment,
   getAppointment,
+  isOccurrenceId,
   listAppointments,
   rangeQuery,
+  scopeBody,
   updateAppointment,
 } from '../services/appointments.js';
 import { audit, countUsage } from '../services/usage.js';
 
-const idParam = z.string().uuid();
+// A stored appointment's uuid, or the id of a visit generated from a repeating series.
+const idParam = z.string().refine((v) => z.uuid().safeParse(v).success || isOccurrenceId(v));
 const MAX_RANGE_DAYS = 62;
 
 function mapTimeError(err: unknown): never {
@@ -49,9 +52,18 @@ export function appointmentsRouter(pool: pg.Pool) {
   router.post('/', async (req, res, next) => {
     try {
       const input = appointmentInput.parse(req.body);
-      const result = await createAppointment(pool, input, req.session.userId!).catch(mapTimeError);
-      await audit(pool, req.session.userId, 'create', 'appointment', result.appointment.id);
-      await countUsage(pool, 'appointments_created');
+      const { created, ...result } = await createAppointment(
+        pool,
+        input,
+        req.session.userId!,
+      ).catch(mapTimeError);
+      if (created === 'series') {
+        await audit(pool, req.session.userId, 'create', 'series', result.appointment.seriesId!);
+        await countUsage(pool, 'series_created');
+      } else {
+        await audit(pool, req.session.userId, 'create', 'appointment', result.appointment.id);
+        await countUsage(pool, 'appointments_created');
+      }
       res.status(201).json(result);
     } catch (err) {
       next(err);
@@ -62,10 +74,13 @@ export function appointmentsRouter(pool: pg.Pool) {
     try {
       const id = idParam.parse(req.params.id);
       const input = appointmentInput.parse(req.body);
-      const result = await updateAppointment(pool, id, input).catch(mapTimeError);
+      const result = await updateAppointment(pool, id, input, req.session.userId!).catch(
+        mapTimeError,
+      );
       if (!result) throw new AppError(404, 'not_found');
-      await audit(pool, req.session.userId, 'update', 'appointment', id);
-      res.json(result);
+      const { audit: a, ...body } = result;
+      await audit(pool, req.session.userId, a.action, a.entity, a.id);
+      res.json(body);
     } catch (err) {
       next(err);
     }
@@ -74,11 +89,18 @@ export function appointmentsRouter(pool: pg.Pool) {
   router.post('/:id/cancel', async (req, res, next) => {
     try {
       const id = idParam.parse(req.params.id);
-      const appt = await cancelAppointment(pool, id);
-      if (!appt) throw new AppError(404, 'not_found');
-      await audit(pool, req.session.userId, 'cancel', 'appointment', id);
+      const { scope } = scopeBody.parse(req.body ?? {});
+      const result = await cancelAppointment(pool, id, scope);
+      if (!result) throw new AppError(404, 'not_found');
+      await audit(
+        pool,
+        req.session.userId,
+        result.audit.action,
+        result.audit.entity,
+        result.audit.id,
+      );
       await countUsage(pool, 'appointments_cancelled');
-      res.json({ appointment: appt });
+      res.json({ appointment: result.appointment });
     } catch (err) {
       next(err);
     }

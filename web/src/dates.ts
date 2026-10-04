@@ -88,3 +88,8 @@ export const formatRange = (fromIso: string, toIso: string, lang: string) =>
     day: 'numeric',
     month: 'long',
   }).formatRange(toUtc(fromIso), toUtc(toIso));
+
+/** 1-4 for "first" to "fourth" weekday of the month, 5 for "the last one". */
+export const ordinalOf = (iso: string) => Math.ceil(Number(iso.slice(8)) / 7);
+
+export const formatWeekdayLong = (iso: string, lang: string) => fmt(iso, lang, { weekday: 'long' });

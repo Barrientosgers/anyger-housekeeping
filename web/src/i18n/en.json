@@ -1,5 +1,7 @@
 {
-  "app": { "name": "AnyGer's Housekeeping" },
+  "app": {
+    "name": "AnyGer's Housekeeping"
+  },
   "common": {
     "loading": "Loading…",
     "back": "Back",
@@ -13,7 +15,9 @@
     "password": "Password",
     "submit": "Sign in"
   },
-  "nav": { "logout": "Sign out" },
+  "nav": {
+    "logout": "Sign out"
+  },
   "calendar": {
     "title": "Calendar",
     "month": "Month",
@@ -47,7 +51,13 @@
     "hours_5": "5 hours",
     "hours_6": "6 hours",
     "hours_8": "8 hours",
-    "otherMinutes": "{{count}} minutes"
+    "otherMinutes": "{{count}} minutes",
+    "repeat": "Does it repeat?",
+    "repeat_none": "Does not repeat",
+    "repeat_weekly": "Every week",
+    "repeat_biweekly": "Every 2 weeks",
+    "repeat_monthly": "Every month, on the {{ordinal}} {{weekday}}",
+    "repeatUntil": "Repeat until (optional)"
   },
   "detail": {
     "title": "Appointment",
@@ -57,13 +67,18 @@
     "notes": "Notes",
     "call": "Call",
     "edit": "Edit appointment",
-    "cancel": "Cancel appointment"
+    "cancel": "Cancel appointment",
+    "repeats": "Repeats",
+    "until": "{{repeat}}, until {{date}}"
   },
   "cancel": {
     "title": "Cancel this appointment?",
     "summary": "{{name}}, {{date}} at {{time}}",
     "confirm": "Yes, cancel it",
-    "keep": "No, go back"
+    "keep": "No, go back",
+    "titleSeries": "Cancel this repeating appointment?",
+    "thisOnly": "Cancel only this appointment",
+    "future": "Cancel this and the following ones"
   },
   "notice": {
     "saved": "The appointment was saved.",
@@ -78,6 +93,22 @@
     "nonexistent_local_time": "That time does not exist on that day (clock change). Pick another time.",
     "invalid_datetime": "The date or time is not valid.",
     "not_found": "Appointment not found.",
-    "unauthenticated": "Your session ended. Please sign in again."
+    "unauthenticated": "Your session ended. Please sign in again.",
+    "scope_required": "Choose which appointments to change.",
+    "invalid_range": "The dates are not valid."
+  },
+  "ordinal": {
+    "1": "1st",
+    "2": "2nd",
+    "3": "3rd",
+    "4": "4th",
+    "5": "last"
+  },
+  "scope": {
+    "title": "What do you want to change?",
+    "this": "Only this appointment",
+    "future": "This and the following ones",
+    "repeatNote": "Changing how it repeats applies to this appointment and the following ones.",
+    "back": "Back"
   }
 }
