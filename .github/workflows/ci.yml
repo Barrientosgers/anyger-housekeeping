@@ -17,7 +17,7 @@ jobs:
           POSTGRES_USER: anyger
           POSTGRES_PASSWORD: anyger_ci_only
           POSTGRES_DB: anyger_test
-        ports: ["5432:5432"]
+        ports: ['5432:5432']
         options: >-
           --health-cmd "pg_isready -U anyger"
           --health-interval 5s
@@ -38,3 +38,15 @@ jobs:
       - run: npm run coverage -w web
       - run: npm run build
       - run: npm audit --omit=dev --audit-level=high
+
+  secret-scan:
+    # Scans the whole git history on every push, so a leaked key is caught before it can ship.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: gitleaks (full history)
+        run: |
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest \
+            git /repo --no-banner --redact --log-opts="--all"

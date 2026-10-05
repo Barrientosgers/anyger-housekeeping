@@ -17,15 +17,18 @@ export async function setup(
     rateLimit?: boolean;
     makeNotifier?: (pool: ReturnType<typeof createPool>) => Notifier;
     translator?: Translator | null;
+    config?: Partial<ReturnType<typeof loadConfig>>;
+    /** Lets a test hand the app a pool that misbehaves (to check how failures are reported). */
+    wrapPool?: (pool: ReturnType<typeof createPool>) => ReturnType<typeof createPool>;
   } = {},
 ) {
-  const config = loadConfig();
+  const config = { ...loadConfig(), ...opts.config };
   const pool = createPool(config.DATABASE_URL, false);
   await migrate(pool);
   const notifier = opts.makeNotifier?.(pool);
   const app = createApp({
     config,
-    pool,
+    pool: opts.wrapPool ? opts.wrapPool(pool) : pool,
     logger: createLogger('silent'),
     rateLimit: opts.rateLimit,
     notifier,

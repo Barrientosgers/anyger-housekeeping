@@ -24,12 +24,15 @@ I have read Cloudflare's getting-started page, but I have **not** used a live Cl
 
 1. Create a **free account** at cloudflare.com. No payment method is needed to use the free allowance.
 2. In the Cloudflare dashboard open **Workers AI**, choose **Use REST API**, and **Create a Workers AI API Token**. Copy the token and your **Account ID**. (A custom token needs the permissions _Workers AI - Read_ and _Workers AI - Edit_.) Treat the token like a password.
-3. **Test it from your terminal** before touching the app (this is the check I could not do for you). Replace the two placeholders, and do not paste the token anywhere else:
+3. **Test it from your terminal** before touching the app (this is the check I could not do for you). The token is typed at a hidden prompt so it never lands in your shell history:
 
    ```bash
-   curl https://api.cloudflare.com/client/v4/accounts/ACCOUNT_ID/ai/run/@cf/meta/m2m100-1.2b \
-     -H "Authorization: Bearer API_TOKEN" -H "Content-Type: application/json" \
+   read -rs CLOUDFLARE_API_TOKEN && export CLOUDFLARE_API_TOKEN     # paste the token, press Enter
+   export CLOUDFLARE_ACCOUNT_ID=your-account-id
+   curl "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/ai/run/@cf/meta/m2m100-1.2b" \
+     -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" \
      -d '{"text":"Please use the back door","source_lang":"en","target_lang":"es"}'
+   unset CLOUDFLARE_API_TOKEN
    ```
 
    You should get JSON containing a Spanish sentence (`translated_text`). If you get an error about the language values, try `"source_lang":"english","target_lang":"spanish"` instead; Cloudflare's docs show both forms. If the names work, set `CLOUDFLARE_LANG_FORMAT=name` in step 4.

@@ -1,0 +1,4 @@
+# Reviewed false positive (Phase 6 history scan): the placeholder "Bearer API_TOKEN" in an example
+# curl command in docs/translation-setup.md. It is not a credential. The doc now reads the token
+# from a hidden prompt instead. Everything else in history is scanned normally.
+db5578b9fcf694d6046ae96179a115702101b0e0:docs/translation-setup.md:curl-auth-header:30

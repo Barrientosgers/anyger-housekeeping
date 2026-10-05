@@ -6,7 +6,7 @@ No credit card and nothing paid. Free tiers can change; check each provider's cu
 
 1. Sign up at neon.tech with GitHub or email.
 2. Create a project (region closest to California, e.g. US West).
-3. Copy the **connection string** (looks like `postgres://user:...@ep-xxx.neon.tech/neondb?sslmode=require`). Treat it as a secret.
+3. Copy the **connection string** (it is one line starting with `postgres://` and containing your database user, password, and host). Treat it as a secret.
 
 ## 2. Web service (Render)
 
