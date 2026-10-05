@@ -75,6 +75,20 @@ Texts to the owner add an outbound channel and a new way for a stranger to cause
 | Logs                                      | One line per text: event, provider, outcome. Never the number or message body (verified by running the built server: 0 matches).                                                                                                           |
 | Lock-in                                   | `SmsProvider` interface with httpSMS, Twilio (mocked tests only), and fake adapters.                                                                                                                                                       |
 
+## Translation of notes
+
+Translating means a client's free-text note leaves our server for a third party, so the design limits what, when, and how much:
+
+| Concern           | Control                                                                                                                                                                                                                                                                                  |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| What is sent      | Only the text of **one note**, never a name, address, or phone number. The note field is the only free text, and the owners decide nothing is sent unless it is in the other language.                                                                                                   |
+| Which provider    | Chosen for its data terms as well as cost: Cloudflare Workers AI states it does not train on or store customer content by default. Google's free Gemini tier was rejected because its terms allow using free-tier content to improve their products.                                     |
+| Not an open proxy | `POST /api/translations` is login-only and takes an **id, never text**. The server reads the note from its own database, so a caller cannot use it to translate arbitrary text or spend the free allowance. Rate limited, plus an app-wide **daily cap** (200).                          |
+| Cost and quota    | Each distinct note is translated once and cached; the cache stores only a hash, the languages, and the translation (never who it belongs to or the original), and **entries are deleted after 30 days**. The free provider fails rather than bills when its allowance is spent.          |
+| Prompt injection  | The Claude adapter fences the note in `<note>` tags and tells the model the note is data to translate, never instructions. Any provider's output is length-checked, stored as plain text, and rendered by React as text, so a hostile note or translation cannot become markup (tested). |
+| Failure           | Every failure is a normal answer, counted (`translations_failed`) and logged without the text. The original note is always shown first, so a provider outage can never hide or alter what a client wrote.                                                                                |
+| Secrets           | Account ID, API token, and any Claude key are environment variables only, never logged. Misconfiguration **fails closed at startup** and names the setting, never its value.                                                                                                             |
+
 ## Threat model (short)
 
 | Threat                               | Mitigation                                                                                                                                                                    |
@@ -91,6 +105,7 @@ Texts to the owner add an outbound channel and a new way for a stranger to cause
 
 - **Shared login, no MFA.** Both parents use one account for simplicity (they are not tech-savvy). Trade-off accepted; revisit if more staff are added.
 - **Rate limit is per IP and in memory.** Fine for one instance; would need a shared store if scaled out. A determined attacker with many IPs is limited only by the 100-pending cap, not stopped; if real spam appears, add a free CAPTCHA (Cloudflare Turnstile).
+- **Translations depend on a third party and are machine quality.** A note that contains an address is sent along with it. Cloudflare's model is free but less accurate than a large model on informal text, and the owners are told it is an _automatic_ translation. The original is always shown beside it.
 - **Texts depend on a third-party relay and a phone.** If httpSMS is down or the sender phone is off, texts are delayed or lost (the app keeps working and records the failure). httpSMS offers end-to-end encryption, which is not enabled because the content is already generic.
 - **Shared login.** The app cannot tell which parent made a change, so the owner is also texted about their own edits.
 - **No confirmation to the client.** Clients are not emailed or texted (by design: less data). A request is also not verified to come from the phone number given.

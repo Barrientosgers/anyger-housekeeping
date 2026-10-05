@@ -3,7 +3,7 @@
 A calm, Spanish-first scheduling app that replaces a paper calendar for a small family house-cleaning business. Built for my parents, who are not tech-savvy, and engineered like production software: tested, secured, deployed, and documented.
 
 **Live:** https://anyger-housekeeping.onrender.com (free hosting; the first load after idle can take 30-60 seconds)
-**Status:** Phase 4 of 6 built (text messages to the owner). See the roadmap below.
+**Status:** Phase 5 of 6 built (translation of client notes). See the roadmap below.
 
 ## Who it's for
 
@@ -37,7 +37,13 @@ Phase 3: the public form and the owners' review screens.
 | ------------------------------------------------ | ----------------------------------------- | -------------------------------------------------- |
 | ![Booking form](docs/screenshots/10-booking.png) | ![Banner](docs/screenshots/11-banner.png) | ![Request](docs/screenshots/13-request-detail.png) |
 
-## What works today (Phases 1-4)
+Phase 5: a note and its automatic translation (shown here with a stand-in translator, since no live Cloudflare account is connected yet), and what the owners see if translation is down.
+
+| Original + translation                                  | Translation unavailable                                       |
+| ------------------------------------------------------- | ------------------------------------------------------------- |
+| ![Translated note](docs/screenshots/14-translation.png) | ![Translation down](docs/screenshots/15-translation-down.png) |
+
+## What works today (Phases 1-5)
 
 - Create, edit, and cancel an appointment (client, address, phone, date, time, duration, notes). Cancelling asks "are you sure?" first.
 - Calendar home screen with **month**, **week** and **day** views. Tapping a day in the month opens that day with its list of clients (feedback from the first real users).
@@ -46,19 +52,20 @@ Phase 3: the public form and the owners' review screens.
 - **Spanish and English** with a one-tap toggle. Spanish is the default; each phone remembers its own choice.
 - **Booking requests:** clients fill in a public form at `/book` (Spanish or English). Requests wait as "pending" until the owners **Aceptar** (the form opens prefilled so they can adjust the date or time, and it becomes an appointment or repeating series) or **Rechazar**. A banner on the calendar shows how many are waiting. Spam is handled by a hidden trap field, a rate limit, and a cap on pending requests; old requests are deleted automatically.
 - **Text messages to the owner** (off until configured): a generic text when a request arrives or an appointment is created, changed, or cancelled. Sent for free by an Android phone you own via httpSMS, behind a swappable `SmsProvider` interface, with a cooldown and a monthly cap. See [docs/sms-setup.md](docs/sms-setup.md).
+- **Translation of client notes** (off until configured): a note in the other language is shown with an automatic translation beneath it, and the **original is always kept and shown first**. Free (Cloudflare Workers AI) because the Claude API is not; a Claude adapter is built but off. If translation is down the note simply shows as written. See [docs/translation-setup.md](docs/translation-setup.md).
 - Login required for everything except the booking form. Sessions last 90 days so the parents rarely sign in.
 - Times are stored in UTC and shown in Pacific Time. Repeating visits keep their wall-clock time across daylight-saving changes (tested).
 
 ## Roadmap
 
-| Phase | Scope                                                                  | Status                         |
-| ----- | ---------------------------------------------------------------------- | ------------------------------ |
-| 1     | Git/GitHub, appointments, calendar, auth, tests, CI, deploy            | deployed and in use            |
-| 2     | Recurring cleanings (weekly / every 2 weeks / monthly), English toggle | deployed and in use            |
-| 3     | Public booking requests, accept/decline, spam protection               | deployed                       |
-| 4     | Text messages to the owner behind a swappable `SmsProvider`            | built; needs your sender phone |
-| 5     | Claude API translation, original always kept, graceful fallback        | planned                        |
-| 6     | Public-repo hardening: history scan, metrics write-up                  | planned                        |
+| Phase | Scope                                                                  | Status                               |
+| ----- | ---------------------------------------------------------------------- | ------------------------------------ |
+| 1     | Git/GitHub, appointments, calendar, auth, tests, CI, deploy            | deployed and in use                  |
+| 2     | Recurring cleanings (weekly / every 2 weeks / monthly), English toggle | deployed and in use                  |
+| 3     | Public booking requests, accept/decline, spam protection               | deployed                             |
+| 4     | Text messages to the owner behind a swappable `SmsProvider`            | merged; off until set up             |
+| 5     | Translation of client notes, original always kept, graceful fallback   | built; needs a free Cloudflare token |
+| 6     | Public-repo hardening: history scan, metrics write-up                  | planned                              |
 
 ## Tech stack
 
@@ -97,12 +104,12 @@ npm test            # server + web (needs `npm run db:up`)
 npm run coverage    # with coverage report
 ```
 
-## Quality, with real numbers (measured after Phase 4)
+## Quality, with real numbers (measured after Phase 5)
 
 |                                 | Tests | Line coverage | Branch coverage |
 | ------------------------------- | ----- | ------------- | --------------- |
-| Server (unit + API integration) | 128   | 94.0%         | 85.7%           |
-| Web (unit + component)          | 51    | 90.6%         | 91.3%           |
+| Server (unit + API integration) | 173   | 94.0%         | 87.3%           |
+| Web (unit + component)          | 66    | 91.1%         | 92.4%           |
 
 CI passes on GitHub Actions. Coverage will be re-measured each phase; these numbers are not targets, only what was measured.
 
@@ -115,5 +122,6 @@ See [SECURITY.md](SECURITY.md) for the OWASP Top 10 mapping, threat model, what 
 - [docs/architecture.md](docs/architecture.md): diagram, data model, decisions and tradeoffs
 - [docs/deploy.md](docs/deploy.md): free deployment on Render + Neon
 - [docs/sms-setup.md](docs/sms-setup.md): turning on free text messages
+- [docs/translation-setup.md](docs/translation-setup.md): turning on free translation of notes
 - [SECURITY.md](SECURITY.md)
 - [CLAUDE.md](CLAUDE.md): project rules and goals for AI-assisted sessions

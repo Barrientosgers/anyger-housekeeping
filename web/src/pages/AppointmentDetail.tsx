@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { type Appointment, api } from '../api';
 import { formatFullDate, formatTime } from '../dates';
 import { errorMessage } from '../errors';
+import { TranslatedNote } from '../components';
 import { repeatLabel } from '../repeat';
 
 export default function AppointmentDetail() {
@@ -78,7 +79,9 @@ export default function AppointmentDetail() {
         {appt.notes && (
           <>
             <dt>{t('detail.notes')}</dt>
-            <dd className="notes">{appt.notes}</dd>
+            <dd>
+              <TranslatedNote entity="appointment" id={appt.id} notes={appt.notes} />
+            </dd>
           </>
         )}
       </dl>
