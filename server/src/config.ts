@@ -25,6 +25,16 @@ const schema = z
     TWILIO_ACCOUNT_SID: optional(z.string().min(1)),
     TWILIO_AUTH_TOKEN: optional(z.string().min(1)),
     TWILIO_FROM_NUMBER: optional(e164),
+
+    // Translation of client notes (Phase 5). "none" switches it off; the app works without it.
+    TRANSLATE_PROVIDER: z.enum(['none', 'fake', 'cloudflare', 'claude']).default('none'),
+    TRANSLATE_DAILY_LIMIT: z.coerce.number().int().min(1).default(200),
+    CLOUDFLARE_ACCOUNT_ID: optional(z.string().min(1)),
+    CLOUDFLARE_API_TOKEN: optional(z.string().min(1)),
+    // Cloudflare's docs are unclear whether m2m100 wants "es" or "spanish"; this makes it a setting.
+    CLOUDFLARE_LANG_FORMAT: z.enum(['code', 'name']).default('code'),
+    ANTHROPIC_API_KEY: optional(z.string().min(1)),
+    ANTHROPIC_MODEL: z.string().min(1).default('claude-opus-5-5'),
   })
   .superRefine((v, ctx) => {
     // Fail closed at startup: a half-configured provider must not silently drop texts.
@@ -33,6 +43,9 @@ const schema = z
         if (!v[name]) ctx.addIssue({ code: 'custom', path: [name], message: 'required' });
       }
     };
+    if (v.TRANSLATE_PROVIDER === 'cloudflare')
+      need(['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_TOKEN']);
+    if (v.TRANSLATE_PROVIDER === 'claude') need(['ANTHROPIC_API_KEY']);
     if (v.SMS_PROVIDER === 'none') return;
     need(['NOTIFY_PHONE_NUMBER']);
     if (v.SMS_PROVIDER === 'httpsms') need(['HTTPSMS_API_KEY', 'HTTPSMS_FROM']);

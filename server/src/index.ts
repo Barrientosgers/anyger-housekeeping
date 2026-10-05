@@ -7,6 +7,8 @@ import { createLogger } from './logger.js';
 import { createNotifier } from './services/notify.js';
 import { purgeOldRequests } from './services/requests.js';
 import { createSmsProvider } from './services/sms/index.js';
+import { createTranslator } from './services/translate/index.js';
+import { purgeOldTranslations } from './services/translations.js';
 
 const config = loadConfig();
 const logger = createLogger(config.LOG_LEVEL);
@@ -35,8 +37,12 @@ if (applied.length) logger.info({ applied }, 'migrations applied');
 
 // Keep personal data short-lived: remove old booking requests now and twice a day.
 const purge = () =>
-  purgeOldRequests(pool)
-    .then((n) => n && logger.info({ removed: n }, 'old booking requests purged'))
+  Promise.all([purgeOldRequests(pool), purgeOldTranslations(pool)])
+    .then(([requests, translations]) => {
+      if (requests || translations) {
+        logger.info({ requests, translations }, 'old personal data purged');
+      }
+    })
     .catch((err: Error) => logger.error({ errMessage: err.message }, 'purge failed'));
 void purge();
 setInterval(purge, 12 * 60 * 60 * 1000).unref();
@@ -53,7 +59,10 @@ const notifier = createNotifier({
   monthlyLimit: config.SMS_MONTHLY_LIMIT,
 });
 
-const app = createApp({ config, pool, logger, notifier });
+const translator = createTranslator(config);
+logger.info({ translateProvider: translator?.name ?? 'none' }, 'translation');
+
+const app = createApp({ config, pool, logger, notifier, translator });
 const server = app.listen(config.PORT, () =>
   logger.info({ port: config.PORT }, 'server listening'),
 );

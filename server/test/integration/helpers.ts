@@ -6,6 +6,7 @@ import { migrate } from '../../src/db/migrate.js';
 import { createPool } from '../../src/db/pool.js';
 import { createLogger } from '../../src/logger.js';
 import type { Notifier } from '../../src/services/notify.js';
+import type { Translator } from '../../src/services/translate/types.js';
 
 export const TEST_EMAIL = 'tester@example.com';
 export const TEST_PASSWORD = 'correct horse battery staple';
@@ -15,6 +16,7 @@ export async function setup(
   opts: {
     rateLimit?: boolean;
     makeNotifier?: (pool: ReturnType<typeof createPool>) => Notifier;
+    translator?: Translator | null;
   } = {},
 ) {
   const config = loadConfig();
@@ -27,13 +29,14 @@ export async function setup(
     logger: createLogger('silent'),
     rateLimit: opts.rateLimit,
     notifier,
+    translator: opts.translator,
   });
   return { pool, app, notifier };
 }
 
 export async function resetDb(pool: ReturnType<typeof createPool>) {
   await pool.query(
-    'TRUNCATE booking_requests, appointments, series, audit_log, usage_counters, sessions, users CASCADE',
+    'TRUNCATE translation_cache, booking_requests, appointments, series, audit_log, usage_counters, sessions, users CASCADE',
   );
   await pool.query('INSERT INTO users (email, password_hash) VALUES ($1, $2)', [
     TEST_EMAIL,

@@ -14,10 +14,12 @@ import { AppError } from './errors.js';
 import type { Logger } from './logger.js';
 import { requireAuth, requireCsrfHeader } from './middleware/security.js';
 import { type Notifier, noopNotifier } from './services/notify.js';
+import type { Translator } from './services/translate/types.js';
 import { appointmentsRouter } from './routes/appointments.js';
 import { authRouter } from './routes/auth.js';
 import { publicRouter } from './routes/public.js';
 import { requestsRouter } from './routes/requests.js';
+import { translationsRouter } from './routes/translations.js';
 
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
 
@@ -29,6 +31,8 @@ export function createApp(deps: {
   rateLimit?: boolean;
   /** Sends owner texts. Defaults to doing nothing. */
   notifier?: Notifier;
+  /** Translates client notes. Defaults to off. */
+  translator?: Translator | null;
 }) {
   const { config, pool, logger } = deps;
   const notifier = deps.notifier ?? noopNotifier;
@@ -86,6 +90,16 @@ export function createApp(deps: {
   app.use('/api/auth', authRouter(pool, { rateLimit: limits }));
   app.use('/api/public', publicRouter(pool, { rateLimit: limits, notifier }));
   app.use('/api/requests', requireAuth, requestsRouter(pool));
+  app.use(
+    '/api/translations',
+    requireAuth,
+    translationsRouter(pool, {
+      translator: deps.translator ?? null,
+      dailyLimit: config.TRANSLATE_DAILY_LIMIT,
+      logger,
+      rateLimit: limits,
+    }),
+  );
   app.use('/api/appointments', requireAuth, appointmentsRouter(pool, notifier));
   app.use('/api', (_req, _res, next) => next(new AppError(404, 'not_found')));
 

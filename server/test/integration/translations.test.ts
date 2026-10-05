@@ -1,0 +1,279 @@
+import supertest from 'supertest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { addDays } from '../../src/domain/recurrence.js';
+import { utcToLocal } from '../../src/domain/time.js';
+import { purgeOldTranslations } from '../../src/services/translations.js';
+import { FakeTranslator } from '../../src/services/translate/fake.js';
+import { CSRF, loggedInAgent, resetDb, sample, setup } from './helpers.js';
+
+let translator: FakeTranslator;
+let ctx: Awaited<ReturnType<typeof setup>>;
+let agent: Awaited<ReturnType<typeof loggedInAgent>>;
+
+beforeAll(async () => {
+  translator = new FakeTranslator();
+  ctx = await setup({ translator });
+});
+beforeEach(async () => {
+  translator.calls = 0;
+  translator.failWith = null;
+  await resetDb(ctx.pool);
+  agent = await loggedInAgent(ctx.app);
+});
+afterAll(() => ctx.pool.end());
+
+const today = () => utcToLocal(new Date()).date;
+const EN_NOTE = 'We have two dogs, please use the back door';
+const ES_NOTE = 'Tengo dos perros, por favor entre por la puerta de atrás';
+
+const makeRequest = async (notes: string | null, lang = 'en') => {
+  await supertest(ctx.app)
+    .post('/api/public/requests')
+    .set(CSRF)
+    .send({
+      clientName: 'Laura',
+      clientPhone: '5550100199',
+      address: '77 Sample Rd',
+      preferredDate: addDays(today(), 14),
+      preferredTime: '09:00',
+      repeat: 'none',
+      notes: notes ?? '',
+      lang,
+      website: '',
+    })
+    .expect(201);
+  return (await ctx.pool.query('SELECT id FROM booking_requests ORDER BY created_at DESC LIMIT 1'))
+    .rows[0].id as string;
+};
+const makeAppointment = async (notes: string, over: object = {}) =>
+  (
+    await agent
+      .post('/api/appointments')
+      .set(CSRF)
+      .send({ ...sample, notes, ...over })
+      .expect(201)
+  ).body.appointment as { id: string };
+const translate = (entity: string, id: string, target: string) =>
+  agent.post('/api/translations').set(CSRF).send({ entity, id, target });
+const counters = async () =>
+  Object.fromEntries(
+    (await ctx.pool.query('SELECT event, count FROM usage_counters')).rows.map(
+      (r: { event: string; count: number }) => [r.event, r.count],
+    ),
+  );
+
+describe('translating notes', () => {
+  it('requires login', async () => {
+    await supertest(ctx.app)
+      .post('/api/translations')
+      .set(CSRF)
+      .send({ entity: 'request', id: '00000000-0000-4000-8000-000000000000', target: 'es' })
+      .expect(401);
+  });
+
+  it('translates a client note into Spanish and returns the original beside it', async () => {
+    const id = await makeRequest(EN_NOTE);
+    const res = await translate('request', id, 'es').expect(200);
+    expect(res.body).toEqual({
+      status: 'translated',
+      sourceLang: 'en',
+      targetLang: 'es',
+      original: EN_NOTE,
+      translation: `[en->es] ${EN_NOTE}`,
+      cached: false,
+    });
+    expect((await counters()).translations_performed).toBe(1);
+  });
+
+  it('translates in the other direction too', async () => {
+    const id = await makeRequest(ES_NOTE, 'es');
+    const res = await translate('request', id, 'en').expect(200);
+    expect(res.body).toMatchObject({ status: 'translated', sourceLang: 'es', targetLang: 'en' });
+  });
+
+  it('never re-translates the same note: the second ask is served from the cache', async () => {
+    const id = await makeRequest(EN_NOTE);
+    await translate('request', id, 'es').expect(200);
+    const second = await translate('request', id, 'es').expect(200);
+    expect(second.body).toMatchObject({ status: 'translated', cached: true });
+    expect(translator.calls).toBe(1);
+    expect((await counters()).translations_performed).toBe(1);
+  });
+
+  it("does nothing when the note is already in the reader's language", async () => {
+    const id = await makeRequest(ES_NOTE, 'es');
+    const res = await translate('request', id, 'es').expect(200);
+    expect(res.body).toEqual({ status: 'same_language' });
+    expect(translator.calls).toBe(0);
+  });
+
+  it('trusts what the note actually says, not the form language the client happened to use', async () => {
+    const id = await makeRequest(ES_NOTE, 'en'); // Spanish note typed on the English form
+    expect((await translate('request', id, 'es').expect(200)).body).toEqual({
+      status: 'same_language',
+    });
+    expect(translator.calls).toBe(0);
+  });
+
+  it('falls back to the form language when a short note is ambiguous', async () => {
+    const id = await makeRequest('ok', 'en');
+    const res = await translate('request', id, 'es').expect(200);
+    expect(res.body).toMatchObject({ status: 'translated', sourceLang: 'en' });
+  });
+
+  it('empty notes need no translation and no provider call', async () => {
+    const id = await makeRequest(null);
+    expect((await translate('request', id, 'es').expect(200)).body).toEqual({ status: 'empty' });
+    expect(translator.calls).toBe(0);
+  });
+
+  it('works for appointment notes, including visits generated by a repeating series', async () => {
+    const one = await makeAppointment(EN_NOTE);
+    expect((await translate('appointment', one.id, 'es').expect(200)).body.status).toBe(
+      'translated',
+    );
+    const series = await makeAppointment('Key under the mat, thank you', {
+      repeat: 'weekly',
+      date: addDays(today(), 3),
+    });
+    expect(series.id).toMatch(/^s:/);
+    expect((await translate('appointment', series.id, 'es').expect(200)).body.status).toBe(
+      'translated',
+    );
+  });
+
+  it('an ambiguous appointment note with no language hint is left alone', async () => {
+    const a = await makeAppointment('ok');
+    expect((await translate('appointment', a.id, 'es').expect(200)).body).toEqual({
+      status: 'unknown_language',
+    });
+  });
+});
+
+describe('it is a convenience, never a requirement', () => {
+  it('when translation is not configured the answer is "disabled" and nothing breaks', async () => {
+    const off = await setup({ translator: null });
+    try {
+      const a = await loggedInAgent(off.app);
+      const created = (
+        await a
+          .post('/api/appointments')
+          .set(CSRF)
+          .send({ ...sample, notes: EN_NOTE })
+          .expect(201)
+      ).body.appointment;
+      const res = await a
+        .post('/api/translations')
+        .set(CSRF)
+        .send({ entity: 'appointment', id: created.id, target: 'es' })
+        .expect(200);
+      expect(res.body).toEqual({ status: 'disabled' });
+      await a.get(`/api/appointments/${created.id}`).expect(200); // the note is still there
+    } finally {
+      await off.pool.end();
+    }
+  });
+
+  it.each(['timeout', 'network', 'rejected', 'quota'] as const)(
+    'a provider outage (%s) is a normal answer, is counted, and is not cached',
+    async (reason) => {
+      const id = await makeRequest(EN_NOTE);
+      translator.failWith = { ok: false, reason };
+      const res = await translate('request', id, 'es').expect(200);
+      expect(res.body).toEqual({ status: 'unavailable', reason });
+      expect((await counters()).translations_failed).toBe(1);
+      expect(
+        (await ctx.pool.query('SELECT count(*)::int AS n FROM translation_cache')).rows[0].n,
+      ).toBe(0);
+      // and it recovers by itself once the provider is back
+      translator.failWith = null;
+      expect((await translate('request', id, 'es').expect(200)).body.status).toBe('translated');
+    },
+  );
+
+  it('the original note is always readable from the normal endpoints, whatever translation does', async () => {
+    const created = await makeAppointment(EN_NOTE);
+    translator.failWith = { ok: false, reason: 'network' };
+    await translate('appointment', created.id, 'es').expect(200);
+    expect(
+      (await agent.get(`/api/appointments/${created.id}`).expect(200)).body.appointment.notes,
+    ).toBe(EN_NOTE);
+  });
+
+  it('a daily cap protects the free allowance', async () => {
+    const limited = await setup({ translator });
+    try {
+      const a = await loggedInAgent(limited.app);
+      // pretend 200 translations were already done today (the default cap)
+      await limited.pool.query(
+        `INSERT INTO usage_counters (event, day, count) VALUES ('translations_performed', (now() AT TIME ZONE 'America/Los_Angeles')::date, 200)`,
+      );
+      const created = (
+        await a
+          .post('/api/appointments')
+          .set(CSRF)
+          .send({ ...sample, notes: EN_NOTE })
+          .expect(201)
+      ).body.appointment;
+      translator.calls = 0;
+      const res = await a
+        .post('/api/translations')
+        .set(CSRF)
+        .send({ entity: 'appointment', id: created.id, target: 'es' })
+        .expect(200);
+      expect(res.body).toEqual({ status: 'unavailable', reason: 'limit' });
+      expect(translator.calls).toBe(0);
+    } finally {
+      await limited.pool.end();
+    }
+  });
+});
+
+describe('safety of the endpoint', () => {
+  it('takes an id, never text: it cannot be used as a free translation service', async () => {
+    const res = await agent
+      .post('/api/translations')
+      .set(CSRF)
+      .send({
+        entity: 'request',
+        id: '00000000-0000-4000-8000-000000000000',
+        target: 'es',
+        text: 'translate me',
+      })
+      .expect(404);
+    expect(translator.calls).toBe(0);
+    expect(res.body.error.code).toBe('not_found');
+  });
+
+  it('validates input and returns 404 for unknown records', async () => {
+    await translate('request', 'not-a-uuid', 'es').expect(400);
+    await translate('appointment', 'also-bad', 'es').expect(400);
+    await translate('nonsense', '00000000-0000-4000-8000-000000000000', 'es').expect(400);
+    await translate('request', '00000000-0000-4000-8000-000000000000', 'fr').expect(400);
+    await translate('appointment', '00000000-0000-4000-8000-000000000000', 'es').expect(404);
+  });
+
+  it('stores only a hash and the translation, never the person or the original text', async () => {
+    const id = await makeRequest(EN_NOTE);
+    await translate('request', id, 'es').expect(200);
+    const row = (await ctx.pool.query('SELECT * FROM translation_cache')).rows[0];
+    expect(row.source_hash).toMatch(/^[0-9a-f]{64}$/);
+    expect(JSON.stringify(row)).not.toContain('Laura');
+    expect(JSON.stringify(row)).not.toContain('Sample Rd');
+    expect(JSON.stringify(row)).not.toContain(`"${EN_NOTE}"`); // the original is not stored in the cache
+  });
+
+  it('cached translations are deleted after 30 days', async () => {
+    const id = await makeRequest(EN_NOTE);
+    await translate('request', id, 'es').expect(200);
+    await ctx.pool.query(`UPDATE translation_cache SET created_at = now() - interval '31 days'`);
+    await ctx.pool.query(
+      `INSERT INTO translation_cache (source_hash, source_lang, target_lang, translated_text, provider)
+       VALUES ('fresh', 'en', 'es', 'x', 'fake')`,
+    );
+    expect(await purgeOldTranslations(ctx.pool)).toBe(1);
+    expect((await ctx.pool.query('SELECT source_hash FROM translation_cache')).rows).toEqual([
+      { source_hash: 'fresh' },
+    ]);
+  });
+});
