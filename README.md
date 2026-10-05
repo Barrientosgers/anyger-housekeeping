@@ -108,14 +108,14 @@ npm run coverage    # with coverage report
 
 |                                 | Tests | Line coverage | Branch coverage |
 | ------------------------------- | ----- | ------------- | --------------- |
-| Server (unit + API integration) | 212   | 94.4%         | 87.8%           |
+| Server (unit + API integration) | 213   | 94.4%         | 87.8%           |
 | Web (unit + component)          | 66    | 91.1%         | 92.4%           |
 
 CI passes on GitHub Actions. Coverage will be re-measured each phase; these numbers are not targets, only what was measured.
 
 ## Metrics
 
-Measured, not estimated: 278 automated tests (94% / 91% line coverage), CI in about a minute, 0 known vulnerable dependencies, Lighthouse accessibility 100 and performance 96-99 on the live public page, 110 KiB page weight, and $0 hosting. Full table with dates and methods in [docs/metrics.md](docs/metrics.md). Real usage counts come from the app's own anonymous counters.
+Measured, not estimated: 279 automated tests (94% / 91% line coverage), CI in about a minute, 0 known vulnerable dependencies, Lighthouse accessibility 100 and performance 96-99 on the live public page, 110 KiB page weight, and $0 hosting. Full table with dates and methods in [docs/metrics.md](docs/metrics.md). Real usage counts come from the app's own anonymous counters.
 
 ## Security and privacy
 
