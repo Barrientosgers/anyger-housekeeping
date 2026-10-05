@@ -142,6 +142,24 @@ describe('response headers', () => {
     expect(res.headers['x-powered-by']).toBeUndefined();
   });
 
+  it('the content security policy allows only the app itself: no inline styles, no outside sources', async () => {
+    const csp = String(
+      (await supertest(ctx.app).get('/healthz')).headers['content-security-policy'],
+    );
+    const directive = (name: string) =>
+      csp
+        .split(';')
+        .map((d) => d.trim())
+        .find((d) => d.startsWith(`${name} `)) ?? '';
+    for (const name of ['default-src', 'script-src', 'style-src', 'font-src', 'connect-src']) {
+      expect(directive(name)).toBe(`${name} 'self'`);
+    }
+    expect(csp).not.toMatch(/unsafe-inline|unsafe-eval|https:|http:|\*/);
+    expect(directive('script-src-attr')).toBe("script-src-attr 'none'");
+    expect(directive('frame-ancestors')).toBe("frame-ancestors 'self'");
+    expect(csp).toContain('upgrade-insecure-requests');
+  });
+
   it('no cross-origin access: preflights and cross-origin requests get no CORS grant', async () => {
     const pre = await supertest(ctx.app)
       .options('/api/appointments')

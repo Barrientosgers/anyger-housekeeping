@@ -28,6 +28,10 @@ unset DATABASE_URL
 
 You will be asked for the password twice (hidden). Use a long passphrase they can type, 12+ characters.
 
+### One setting that matters for security
+
+In the same Environment screen add `TRUST_CLOUDFLARE_IP` = `true`. Render puts Cloudflare in front of your app, and this tells the app to read each visitor's real address from Cloudflare so the rate limits (5 booking requests per hour, 10 login attempts per 15 minutes) apply to each visitor properly. Never set it on a host that is not behind Cloudflare. Then confirm with `scripts/security-probe.sh https://<your-url> --rate-limit`.
+
 ## 4. Share the booking link
 
 Clients use `https://<your-url>/book`. Put it on a business card, text it to new clients, or save it as a shortcut on your phone. Requests show up as a yellow banner on the calendar. Nothing is emailed or texted yet (Phase 4 adds a text to your dad).

@@ -11,6 +11,7 @@
     "test": "vitest run",
     "coverage": "vitest run --coverage",
     "migrate": "tsx --env-file-if-exists=../.env src/db/migrate-cli.ts",
+    "usage": "tsx --env-file-if-exists=../.env src/scripts/usage-report.ts",
     "user:create": "tsx --env-file-if-exists=../.env src/scripts/create-user.ts"
   },
   "dependencies": {

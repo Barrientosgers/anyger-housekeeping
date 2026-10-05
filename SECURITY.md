@@ -41,22 +41,28 @@ The app stores clients' **names, phone numbers, street addresses, and cleaning n
 
 State-changing requests must include `X-Requested-With: anyger`. Browsers cannot add that header to a cross-site request without a CORS preflight, and the server does not enable CORS. This is layered with `SameSite=Lax` cookies. Tested in `auth.test.ts`.
 
+## Security review
+
+A full review before the repository goes public is recorded in [docs/security-review.md](docs/security-review.md): history scans with two tools, a code review against the OWASP list, a black-box probe of the live site, and 38 regression tests. It found and fixed six issues, including rate limits that were not tied to the real visitor behind Render's proxy (F1). Re-run the probe any time with `scripts/security-probe.sh <url>`.
+
+Controls added by the review: strict same-origin-only content security policy, `Cache-Control: no-store` on every API response, proper 413/415 errors for bad bodies, error logs without message text, and a CI job that scans the whole git history for secrets on every push.
+
 ## Public booking form
 
 `/book` is the only page that works without a login, and `POST /api/public/requests` is the only unauthenticated write. It is treated as hostile input.
 
-| Control       | Detail                                                                                                                                                                                                                                      |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Validation    | Zod schema: name, phone (7+ digits, digits and `+()-.` only), address, date (today to 1 year ahead), time (must exist in Pacific Time), repeat, notes (1000 chars), language. Errors list **field names only**, never the submitted values. |
-| Honeypot      | A hidden `website` field, invisible to people and screen readers. If filled, the request is **silently dropped** and the bot still sees a success response.                                                                                 |
-| Rate limit    | 5 submissions per hour per IP, answered with a translatable `429`. In-memory, per instance (see gaps).                                                                                                                                      |
-| Flood cap     | At most 100 pending requests are stored; beyond that the form returns `503 busy` so a distributed flood cannot fill the database.                                                                                                           |
-| Size limits   | 20 KB request body, column length `CHECK`s in the database.                                                                                                                                                                                 |
-| CSRF          | Still requires the `X-Requested-With` header, which blocks naive cross-site form posts. (Bots can send it; the other controls handle bots.)                                                                                                 |
-| No data back  | The response is `{ "ok": true }` and never echoes input. There is no way to read, list, or look up requests without logging in.                                                                                                             |
-| Output        | Notes and names are plain text in the database and rendered as text by React; tests assert markup does not become HTML.                                                                                                                     |
-| Logs          | Method, path, status only. Submissions never appear in logs (verified in a browser run: 0 matches for the submitted name, address, phone).                                                                                                  |
-| Owner actions | Listing, accepting and declining are behind login. Accepting claims the request atomically (`WHERE status = 'pending'`) so two taps cannot create two appointments, and a failed accept puts the request back so nothing is lost.           |
+| Control       | Detail                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Validation    | Zod schema: name, phone (7+ digits, digits and `+()-.` only), address, date (today to 1 year ahead), time (must exist in Pacific Time), repeat, notes (1000 chars), language. Errors list **field names only**, never the submitted values.                                                                                                                                                                |
+| Honeypot      | A hidden `website` field, invisible to people and screen readers. If filled, the request is **silently dropped** and the bot still sees a success response.                                                                                                                                                                                                                                                |
+| Rate limit    | 5 submissions per hour **per visitor**, answered with a translatable `429`. Behind Render the app sits behind Cloudflare, so the visitor's address is taken from `CF-Connecting-IP` (only when `TRUST_CLOUDFLARE_IP=true`; a forged header is ignored otherwise). In-memory, per instance (see gaps). The first version keyed on the proxy's address and was leaky; found and fixed in the Phase 6 review. |
+| Flood cap     | At most 100 pending requests are stored; beyond that the form returns `503 busy` so a distributed flood cannot fill the database.                                                                                                                                                                                                                                                                          |
+| Size limits   | 20 KB request body, column length `CHECK`s in the database.                                                                                                                                                                                                                                                                                                                                                |
+| CSRF          | Still requires the `X-Requested-With` header, which blocks naive cross-site form posts. (Bots can send it; the other controls handle bots.)                                                                                                                                                                                                                                                                |
+| No data back  | The response is `{ "ok": true }` and never echoes input. There is no way to read, list, or look up requests without logging in.                                                                                                                                                                                                                                                                            |
+| Output        | Notes and names are plain text in the database and rendered as text by React; tests assert markup does not become HTML.                                                                                                                                                                                                                                                                                    |
+| Logs          | Method, path, status only. Submissions never appear in logs (verified in a browser run: 0 matches for the submitted name, address, phone).                                                                                                                                                                                                                                                                 |
+| Owner actions | Listing, accepting and declining are behind login. Accepting claims the request atomically (`WHERE status = 'pending'`) so two taps cannot create two appointments, and a failed accept puts the request back so nothing is lost.                                                                                                                                                                          |
 
 ### Retention
 
@@ -112,8 +118,7 @@ Translating means a client's free-text note leaves our server for a third party,
 - **No application-level field encryption.** Relies on provider encryption at rest.
 - **Free-tier hosting** has no uptime or backup guarantees. Back up with `pg_dump` periodically (see `docs/deploy.md`).
 - **No external penetration test.** Only automated tests, dependency audit, and my own review.
-- CSP uses helmet's default style policy (inline styles allowed); tightening is a possible follow-up.
 
-## Reporting
+## Reporting a problem
 
-This is a private small-business app. If you find a problem, contact the repository owner directly rather than opening a public issue.
+Please report security issues **privately**, not in a public issue: use GitHub's "Report a vulnerability" button on the repository's Security tab. This is a small family-business app maintained by one person, so there is no bounty and no guaranteed response time, but reports are taken seriously.

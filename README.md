@@ -3,7 +3,7 @@
 A calm, Spanish-first scheduling app that replaces a paper calendar for a small family house-cleaning business. Built for my parents, who are not tech-savvy, and engineered like production software: tested, secured, deployed, and documented.
 
 **Live:** https://anyger-housekeeping.onrender.com (free hosting; the first load after idle can take 30-60 seconds)
-**Status:** Phase 5 of 6 built (translation of client notes). See the roadmap below.
+**Status:** All 6 phases built; security review complete (see below). Live, in use by the owners. See the roadmap below.
 
 ## Who it's for
 
@@ -65,7 +65,7 @@ Phase 5: a note and its automatic translation (shown here with a stand-in transl
 | 3     | Public booking requests, accept/decline, spam protection               | deployed                             |
 | 4     | Text messages to the owner behind a swappable `SmsProvider`            | merged; off until set up             |
 | 5     | Translation of client notes, original always kept, graceful fallback   | built; needs a free Cloudflare token |
-| 6     | Public-repo hardening: history scan, metrics write-up                  | planned                              |
+| 6     | Security review, history scan, metrics write-up, public-repo prep      | built                                |
 
 ## Tech stack
 
@@ -104,18 +104,22 @@ npm test            # server + web (needs `npm run db:up`)
 npm run coverage    # with coverage report
 ```
 
-## Quality, with real numbers (measured after Phase 5)
+## Quality, with real numbers (measured after Phase 6)
 
 |                                 | Tests | Line coverage | Branch coverage |
 | ------------------------------- | ----- | ------------- | --------------- |
-| Server (unit + API integration) | 173   | 94.0%         | 87.3%           |
+| Server (unit + API integration) | 212   | 94.4%         | 87.8%           |
 | Web (unit + component)          | 66    | 91.1%         | 92.4%           |
 
 CI passes on GitHub Actions. Coverage will be re-measured each phase; these numbers are not targets, only what was measured.
 
+## Metrics
+
+Measured, not estimated: 278 automated tests (94% / 91% line coverage), CI in about a minute, 0 known vulnerable dependencies, Lighthouse accessibility 100 and performance 96-99 on the live public page, 110 KiB page weight, and $0 hosting. Full table with dates and methods in [docs/metrics.md](docs/metrics.md). Real usage counts come from the app's own anonymous counters.
+
 ## Security and privacy
 
-See [SECURITY.md](SECURITY.md) for the OWASP Top 10 mapping, threat model, what personal data is stored and how it is protected, and a list of known gaps.
+A full pre-publication review (history scans with two tools, code review, live probing, 38 security regression tests, and the six issues it found and fixed) is in [docs/security-review.md](docs/security-review.md). See [SECURITY.md](SECURITY.md) for the OWASP Top 10 mapping, threat model, what personal data is stored and how it is protected, and a list of known gaps.
 
 ## Documentation
 
@@ -123,5 +127,7 @@ See [SECURITY.md](SECURITY.md) for the OWASP Top 10 mapping, threat model, what 
 - [docs/deploy.md](docs/deploy.md): free deployment on Render + Neon
 - [docs/sms-setup.md](docs/sms-setup.md): turning on free text messages
 - [docs/translation-setup.md](docs/translation-setup.md): turning on free translation of notes
+- [docs/security-review.md](docs/security-review.md): the Phase 6 security review
+- [docs/metrics.md](docs/metrics.md): measured quality, performance, and usage numbers
 - [SECURITY.md](SECURITY.md)
 - [CLAUDE.md](CLAUDE.md): project rules and goals for AI-assisted sessions

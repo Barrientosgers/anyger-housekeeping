@@ -44,7 +44,29 @@ export function createApp(deps: {
   if (production) app.set('trust proxy', 1);
   app.disable('x-powered-by');
 
-  app.use(helmet());
+  // Everything the app loads comes from itself: no inline styles, no external fonts, scripts,
+  // images, or connections. A strict policy means an injected tag could not run or phone home.
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        useDefaults: false,
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'"],
+          scriptSrcAttr: ["'none'"],
+          styleSrc: ["'self'"],
+          imgSrc: ["'self'", 'data:'],
+          fontSrc: ["'self'"],
+          connectSrc: ["'self'"],
+          objectSrc: ["'none'"],
+          baseUri: ["'self'"],
+          formAction: ["'self'"],
+          frameAncestors: ["'self'"],
+          upgradeInsecureRequests: [],
+        },
+      },
+    }),
+  );
   app.use(
     pinoHttp({
       logger,
