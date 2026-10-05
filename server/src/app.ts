@@ -12,6 +12,7 @@ import { ZodError } from 'zod';
 import type { Config } from './config.js';
 import { AppError } from './errors.js';
 import type { Logger } from './logger.js';
+import { clientIp } from './middleware/client-ip.js';
 import { requireAuth, requireCsrfHeader } from './middleware/security.js';
 import { type Notifier, noopNotifier } from './services/notify.js';
 import type { Translator } from './services/translate/types.js';
@@ -43,7 +44,29 @@ export function createApp(deps: {
   if (production) app.set('trust proxy', 1);
   app.disable('x-powered-by');
 
-  app.use(helmet());
+  // Everything the app loads comes from itself: no inline styles, no external fonts, scripts,
+  // images, or connections. A strict policy means an injected tag could not run or phone home.
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        useDefaults: false,
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'"],
+          scriptSrcAttr: ["'none'"],
+          styleSrc: ["'self'"],
+          imgSrc: ["'self'", 'data:'],
+          fontSrc: ["'self'"],
+          connectSrc: ["'self'"],
+          objectSrc: ["'none'"],
+          baseUri: ["'self'"],
+          formAction: ["'self'"],
+          frameAncestors: ["'self'"],
+          upgradeInsecureRequests: [],
+        },
+      },
+    }),
+  );
   app.use(
     pinoHttp({
       logger,
@@ -55,6 +78,7 @@ export function createApp(deps: {
       },
     }),
   );
+  app.use(clientIp(config.TRUST_CLOUDFLARE_IP));
   app.use(express.json({ limit: '20kb' }));
 
   app.get('/healthz', async (_req, res) => {
@@ -64,6 +88,12 @@ export function createApp(deps: {
     } catch {
       res.status(503).json({ ok: false });
     }
+  });
+
+  // API responses carry personal data: never let a browser or shared cache keep them.
+  app.use('/api', (_req, res, next) => {
+    res.set('Cache-Control', 'no-store');
+    next();
   });
 
   const PgStore = connectPgSimple(session);
@@ -125,12 +155,31 @@ export function createApp(deps: {
       res.status(400).json({ error: { code: 'validation', fields } });
       return;
     }
-    if ((err as { type?: string }).type === 'entity.parse.failed') {
+    // Errors raised by the body parser itself (bad JSON, too big, wrong encoding).
+    const parseError = err as { type?: string; status?: number };
+    if (parseError.type === 'entity.parse.failed') {
       res.status(400).json({ error: { code: 'bad_json' } });
       return;
     }
+    if (parseError.type === 'entity.too.large') {
+      res.status(413).json({ error: { code: 'too_large' } });
+      return;
+    }
+    if (parseError.type === 'charset.unsupported' || parseError.type === 'encoding.unsupported') {
+      res.status(415).json({ error: { code: 'unsupported' } });
+      return;
+    }
+    if (
+      typeof parseError.status === 'number' &&
+      parseError.status >= 400 &&
+      parseError.status < 500
+    ) {
+      res.status(parseError.status).json({ error: { code: 'bad_request' } });
+      return;
+    }
+    // Log the kind of error only. Messages can echo data (database errors, for example).
     req.log.error(
-      { errName: (err as Error).name, errMessage: (err as Error).message },
+      { errName: (err as Error).name, errCode: (err as { code?: string }).code },
       'unhandled error',
     );
     res.status(500).json({ error: { code: 'internal' } });

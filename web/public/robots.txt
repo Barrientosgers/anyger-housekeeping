@@ -1,0 +1,4 @@
+# The booking form is the only public page. Everything else needs a login and has nothing to index.
+User-agent: *
+Allow: /book
+Disallow: /

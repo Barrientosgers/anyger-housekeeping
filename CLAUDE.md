@@ -43,4 +43,4 @@ Bilingual (Spanish default / English) scheduling app for my parents' house-clean
 3. Public booking requests (done, live)
 4. SMS via httpSMS (an Android phone sends; texts are generic, no PII) (merged; off until set up)
 5. Translation of notes: Cloudflare Workers AI (free) is the real provider; the Claude adapter is built but OFF because the Claude API is not free (built; needs a free Cloudflare token)
-6. Public-repo hardening, metrics write-up
+6. Public-repo hardening, metrics write-up (built; repo stays PRIVATE until the owner decides)

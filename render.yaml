@@ -12,6 +12,9 @@ services:
         value: production
       - key: SESSION_SECRET
         generateValue: true
+      # Render fronts services with Cloudflare, which sets the true visitor address (see SECURITY.md).
+      - key: TRUST_CLOUDFLARE_IP
+        value: 'true'
       - key: DATABASE_URL
         sync: false
       - key: SENTRY_DSN

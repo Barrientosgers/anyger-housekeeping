@@ -6,7 +6,7 @@ No credit card and nothing paid. Free tiers can change; check each provider's cu
 
 1. Sign up at neon.tech with GitHub or email.
 2. Create a project (region closest to California, e.g. US West).
-3. Copy the **connection string** (looks like `postgres://user:...@ep-xxx.neon.tech/neondb?sslmode=require`). Treat it as a secret.
+3. Copy the **connection string** (it is one line starting with `postgres://` and containing your database user, password, and host). Treat it as a secret.
 
 ## 2. Web service (Render)
 
@@ -27,6 +27,10 @@ unset DATABASE_URL
 ```
 
 You will be asked for the password twice (hidden). Use a long passphrase they can type, 12+ characters.
+
+### One setting that matters for security
+
+In the same Environment screen add `TRUST_CLOUDFLARE_IP` = `true`. Render puts Cloudflare in front of your app, and this tells the app to read each visitor's real address from Cloudflare so the rate limits (5 booking requests per hour, 10 login attempts per 15 minutes) apply to each visitor properly. Never set it on a host that is not behind Cloudflare. Then confirm with `scripts/security-probe.sh https://<your-url> --rate-limit`.
 
 ## 4. Share the booking link
 

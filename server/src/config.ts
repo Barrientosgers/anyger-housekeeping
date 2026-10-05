@@ -13,6 +13,11 @@ const schema = z
     SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
     SENTRY_DSN: z.string().optional(),
     LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error', 'silent']).default('info'),
+    // Set to true only when the app is behind Cloudflare (Render is): see middleware/client-ip.ts.
+    TRUST_CLOUDFLARE_IP: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((v) => v === 'true'),
 
     // Text messages to the owner. "none" turns sending off (the default); nothing else changes.
     SMS_PROVIDER: z.enum(['none', 'fake', 'httpsms', 'twilio']).default('none'),
