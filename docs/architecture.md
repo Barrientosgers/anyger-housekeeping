@@ -12,7 +12,8 @@ flowchart LR
     S["Express API + static React build<br/>helmet, sessions, zod, pino"]
   end
   S -->|TLS| DB[("Neon free Postgres")]
-  S -. "Phase 4" .-> SMS["SmsProvider interface<br/>Twilio / fake"]
+  S -->|generic text| SMS["SmsProvider interface<br/>httpSMS / Twilio / fake"]
+  SMS --> PH["Sender Android phone"]
   S -. "Phase 5" .-> TR["Translator interface<br/>Claude API / fake"]
   S -.-> SE["Sentry (optional)"]
 ```
@@ -139,9 +140,14 @@ Spanish is the default. The one-tap toggle stores the choice **per device** in `
 - **Language travels with the request.** The client's language is stored so Phase 5 can translate their notes the right way.
 - **Public route boundary.** `/book` is the only unauthenticated page; everything else, including every `/api/requests` route, sits behind `requireAuth`. Tests assert 401s for each owner route.
 
-### SMS abstraction (Phase 4)
+### SMS abstraction (built in Phase 4)
 
-`SmsProvider { send(to, body) }` with Twilio and in-memory fake adapters, selected by `SMS_PROVIDER`. Business logic only knows the interface, so tests never hit the network and the provider can be swapped. Failures are logged and counted, never block saving an appointment.
+- `SmsProvider { name; send(to, body) -> {ok} | {ok:false, reason} }`. Business code only talks to a **notifier**, which only talks to this interface. Adapters: **httpSMS** (the one in use: your own Android phone sends the text, so it costs nothing beyond the phone's plan), **Twilio** (kept to prove swappability; mocked tests only; not free beyond a trial, so not used), and a **fake** for tests. Choosing one is a config value (`SMS_PROVIDER`), and a half-configured provider stops the server at startup instead of silently dropping texts.
+- **Why not the obvious free options:** carrier email-to-text gateways are shut down or shutting down, Twilio is not free after a short trial, and Textbelt's free key allows one text a day. A phone you already own is the only durable free sender; the tradeoff is that the phone must stay on and online.
+- **Texts are generic by design** ("you have a new request, open the app"), because they cross a third-party relay and a phone. They never carry a name, address, phone number, or note.
+- **The notifier never blocks or fails a request.** It runs after the response logic, fire-and-forget, with a 5 s timeout; errors are contained, counted (`sms_sent`, `sms_failed`), and logged without personal data.
+- **Guards, because the public form can now trigger a text:** a per-kind cooldown (burst becomes one text), a hard monthly cap under the free allowance, and a claim-before-send so concurrent events cannot double-send. State for the cooldown is in memory (fine for one instance; it resets on restart). The monthly cap is read from `usage_counters`, so it survives restarts.
+- **Which events text:** new booking request; appointment created (including a new repeating series), changed, or cancelled. Accepting or declining a request does not (the owners just did it). Both parents share a login, so the app cannot tell who made a change.
 
 ### Translation fallback (Phase 5)
 

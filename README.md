@@ -3,7 +3,7 @@
 A calm, Spanish-first scheduling app that replaces a paper calendar for a small family house-cleaning business. Built for my parents, who are not tech-savvy, and engineered like production software: tested, secured, deployed, and documented.
 
 **Live:** https://anyger-housekeeping.onrender.com (free hosting; the first load after idle can take 30-60 seconds)
-**Status:** Phase 3 of 6 built (public booking requests). See the roadmap below.
+**Status:** Phase 4 of 6 built (text messages to the owner). See the roadmap below.
 
 ## Who it's for
 
@@ -37,7 +37,7 @@ Phase 3: the public form and the owners' review screens.
 | ------------------------------------------------ | ----------------------------------------- | -------------------------------------------------- |
 | ![Booking form](docs/screenshots/10-booking.png) | ![Banner](docs/screenshots/11-banner.png) | ![Request](docs/screenshots/13-request-detail.png) |
 
-## What works today (Phases 1-3)
+## What works today (Phases 1-4)
 
 - Create, edit, and cancel an appointment (client, address, phone, date, time, duration, notes). Cancelling asks "are you sure?" first.
 - Calendar home screen with **month**, **week** and **day** views. Tapping a day in the month opens that day with its list of clients (feedback from the first real users).
@@ -45,19 +45,20 @@ Phase 3: the public form and the owners' review screens.
 - **Recurring cleanings:** every week, every 2 weeks, or every month on the same weekday (e.g. the 2nd Tuesday), with an optional end date. Editing or cancelling asks "only this one" or "this and the following".
 - **Spanish and English** with a one-tap toggle. Spanish is the default; each phone remembers its own choice.
 - **Booking requests:** clients fill in a public form at `/book` (Spanish or English). Requests wait as "pending" until the owners **Aceptar** (the form opens prefilled so they can adjust the date or time, and it becomes an appointment or repeating series) or **Rechazar**. A banner on the calendar shows how many are waiting. Spam is handled by a hidden trap field, a rate limit, and a cap on pending requests; old requests are deleted automatically.
+- **Text messages to the owner** (off until configured): a generic text when a request arrives or an appointment is created, changed, or cancelled. Sent for free by an Android phone you own via httpSMS, behind a swappable `SmsProvider` interface, with a cooldown and a monthly cap. See [docs/sms-setup.md](docs/sms-setup.md).
 - Login required for everything except the booking form. Sessions last 90 days so the parents rarely sign in.
 - Times are stored in UTC and shown in Pacific Time. Repeating visits keep their wall-clock time across daylight-saving changes (tested).
 
 ## Roadmap
 
-| Phase | Scope                                                                  | Status                          |
-| ----- | ---------------------------------------------------------------------- | ------------------------------- |
-| 1     | Git/GitHub, appointments, calendar, auth, tests, CI, deploy            | deployed and in use             |
-| 2     | Recurring cleanings (weekly / every 2 weeks / monthly), English toggle | deployed and in use             |
-| 3     | Public booking requests, accept/decline, spam protection               | built; awaiting parent feedback |
-| 4     | SMS to my father behind a swappable `SmsProvider`                      | planned                         |
-| 5     | Claude API translation, original always kept, graceful fallback        | planned                         |
-| 6     | Public-repo hardening: history scan, metrics write-up                  | planned                         |
+| Phase | Scope                                                                  | Status                         |
+| ----- | ---------------------------------------------------------------------- | ------------------------------ |
+| 1     | Git/GitHub, appointments, calendar, auth, tests, CI, deploy            | deployed and in use            |
+| 2     | Recurring cleanings (weekly / every 2 weeks / monthly), English toggle | deployed and in use            |
+| 3     | Public booking requests, accept/decline, spam protection               | deployed                       |
+| 4     | Text messages to the owner behind a swappable `SmsProvider`            | built; needs your sender phone |
+| 5     | Claude API translation, original always kept, graceful fallback        | planned                        |
+| 6     | Public-repo hardening: history scan, metrics write-up                  | planned                        |
 
 ## Tech stack
 
@@ -96,11 +97,11 @@ npm test            # server + web (needs `npm run db:up`)
 npm run coverage    # with coverage report
 ```
 
-## Quality, with real numbers (measured after Phase 3)
+## Quality, with real numbers (measured after Phase 4)
 
 |                                 | Tests | Line coverage | Branch coverage |
 | ------------------------------- | ----- | ------------- | --------------- |
-| Server (unit + API integration) | 98    | 93.6%         | 85.4%           |
+| Server (unit + API integration) | 128   | 94.0%         | 85.7%           |
 | Web (unit + component)          | 51    | 90.6%         | 91.3%           |
 
 CI passes on GitHub Actions. Coverage will be re-measured each phase; these numbers are not targets, only what was measured.
@@ -113,5 +114,6 @@ See [SECURITY.md](SECURITY.md) for the OWASP Top 10 mapping, threat model, what 
 
 - [docs/architecture.md](docs/architecture.md): diagram, data model, decisions and tradeoffs
 - [docs/deploy.md](docs/deploy.md): free deployment on Render + Neon
+- [docs/sms-setup.md](docs/sms-setup.md): turning on free text messages
 - [SECURITY.md](SECURITY.md)
 - [CLAUDE.md](CLAUDE.md): project rules and goals for AI-assisted sessions

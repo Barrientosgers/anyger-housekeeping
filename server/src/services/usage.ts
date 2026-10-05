@@ -6,7 +6,9 @@ export type UsageEvent =
   | 'series_created'
   | 'requests_received'
   | 'requests_accepted'
-  | 'requests_declined';
+  | 'requests_declined'
+  | 'sms_sent'
+  | 'sms_failed';
 
 /** Anonymous daily counters: event name + date + count. No user or client identifiers. */
 export async function countUsage(pool: pg.Pool, event: UsageEvent): Promise<void> {

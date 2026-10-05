@@ -16,3 +16,14 @@ services:
         sync: false
       - key: SENTRY_DSN
         sync: false
+      # Text messages (Phase 4). Leave SMS_PROVIDER unset to keep sending off.
+      - key: SMS_PROVIDER
+        sync: false
+      - key: NOTIFY_PHONE_NUMBER
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: HTTPSMS_API_KEY
+        sync: false
+      - key: HTTPSMS_FROM
+        sync: false

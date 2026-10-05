@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import type pg from 'pg';
 import { makeLimiter } from '../middleware/limits.js';
+import type { Notifier } from '../services/notify.js';
 import { publicRequestInput, submitRequest } from '../services/requests.js';
 import { countUsage } from '../services/usage.js';
 
 /** The only unauthenticated write in the app. Everything here must assume a hostile caller. */
-export function publicRouter(pool: pg.Pool, opts: { rateLimit: boolean }) {
+export function publicRouter(pool: pg.Pool, opts: { rateLimit: boolean; notifier: Notifier }) {
   const router = Router();
   // 5 requests per hour per IP is far more than a real household needs.
   const limiter = makeLimiter(opts.rateLimit, 60 * 60_000, 5);
@@ -14,7 +15,10 @@ export function publicRouter(pool: pg.Pool, opts: { rateLimit: boolean }) {
     try {
       const input = publicRequestInput.parse(req.body);
       const stored = await submitRequest(pool, input);
-      if (stored) await countUsage(pool, 'requests_received');
+      if (stored) {
+        await countUsage(pool, 'requests_received');
+        opts.notifier.notify('request_received'); // dropped spam never reaches this line
+      }
       // Same answer whether stored or dropped as spam, and nothing from the input is echoed.
       res.status(201).json({ ok: true });
     } catch (err) {

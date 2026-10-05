@@ -40,7 +40,7 @@ Bilingual (Spanish default / English) scheduling app for my parents' house-clean
 
 1. Git/GitHub, appointments + calendar (Spanish), auth, tests, CI, deploy (done, live)
 2. Recurrence + English toggle (done, live)
-3. Public booking requests (built)
-4. SMS
+3. Public booking requests (done, live)
+4. SMS via httpSMS (an Android phone sends; texts are generic, no PII) (built; needs sender phone)
 5. AI translation
 6. Public-repo hardening, metrics write-up
