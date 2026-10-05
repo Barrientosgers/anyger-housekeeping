@@ -344,3 +344,32 @@ textarea {
   gap: 0.8rem;
   flex-wrap: wrap;
 }
+
+/* Translated notes: the original always comes first, the translation sits beneath it */
+.translation {
+  margin-top: 0.8rem;
+  padding: 0.7rem 0.9rem;
+  background: var(--accent-bg);
+  border-left: 8px solid var(--primary);
+  border-radius: 10px;
+}
+.translation .label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.link-btn {
+  font: inherit;
+  font-weight: 700;
+  color: var(--primary);
+  background: none;
+  border: none;
+  padding: 0.3rem 0;
+  text-decoration: underline;
+  cursor: pointer;
+  min-height: 44px;
+}
+.facts dd p {
+  margin: 0.2rem 0;
+}

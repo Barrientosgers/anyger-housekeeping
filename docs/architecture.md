@@ -12,6 +12,7 @@ flowchart LR
     S["Express API + static React build<br/>helmet, sessions, zod, pino"]
   end
   S -->|TLS| DB[("Neon free Postgres")]
+  S -->|one note's text| TR["Translator interface<br/>Cloudflare / Claude / fake"]
   S -->|generic text| SMS["SmsProvider interface<br/>httpSMS / Twilio / fake"]
   SMS --> PH["Sender Android phone"]
   S -. "Phase 5" .-> TR["Translator interface<br/>Claude API / fake"]
@@ -149,9 +150,15 @@ Spanish is the default. The one-tap toggle stores the choice **per device** in `
 - **Guards, because the public form can now trigger a text:** a per-kind cooldown (burst becomes one text), a hard monthly cap under the free allowance, and a claim-before-send so concurrent events cannot double-send. State for the cooldown is in memory (fine for one instance; it resets on restart). The monthly cap is read from `usage_counters`, so it survives restarts.
 - **Which events text:** new booking request; appointment created (including a new repeating series), changed, or cancelled. Accepting or declining a request does not (the owners just did it). Both parents share a login, so the app cannot tell who made a change.
 
-### Translation fallback (Phase 5)
+### Translation (built in Phase 5)
 
-`Translator` interface with a Claude adapter. The original text is **always stored next to** the translation. On timeout or API error, the app saves the original and shows "not translated yet"; nothing in the core flow depends on the API being up.
+- **The Claude API is not free**, and this project never pays, so the real translator is **Cloudflare Workers AI** (free daily allowance that blocks instead of billing; says it does not train on or store content). A **Claude adapter** (official SDK, `claude-opus-5-5`, low effort, refusal fallbacks) is built and tested against a stand-in client but **off by default**; a setting turns it on. Both sit behind a small `Translator` interface with a fake for tests, like the SMS provider.
+- **The original is always kept and shown first.** The UI renders the note as written, then, only if translation worked, a labelled "automatic translation" block beneath it. Nothing is ever overwritten.
+- **The app works without it.** Every outcome is a normal answer (`disabled`, `same_language`, `unavailable`, ...); a failure shows a small "try again" under the untouched note. Translation is a convenience, never a dependency, and it is off until configured.
+- **Translate only when needed.** A small deterministic detector (common Spanish/English words and ñ ¿ ¡) decides what language a note is in, so notes already in the reader's language make no provider call. It falls back to the form language the client used, and does nothing when unsure. It is deliberately conservative; the cost of a miss is an untranslated note, not a wrong one.
+- **Cached, capped, and short-lived.** Keyed by a hash of (languages + text), so a note is translated once; capped at 200/day to protect the free allowance; cache rows deleted after 30 days.
+- **The endpoint takes an id, not text,** and reads the note from the database, so it cannot become a free translation service.
+- **Tradeoff:** machine translation by a smaller free model is less accurate than Claude on informal text. That is the price of staying free, and why the UI says "automatic" and keeps the original beside it.
 
 ### Authentication
 

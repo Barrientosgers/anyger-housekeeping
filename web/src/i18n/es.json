@@ -157,5 +157,13 @@
     "declineKeep": "No, volver",
     "acceptTitle": "Aceptar solicitud",
     "acceptHint": "Revise los datos y cambie la fecha o la hora si hace falta."
+  },
+  "translation": {
+    "label": "Traducción automática",
+    "original": "Original",
+    "loading": "Traduciendo…",
+    "unavailable": "No se pudo traducir ahora.",
+    "limit": "Se alcanzó el límite de traducciones de hoy.",
+    "retry": "Intentar de nuevo"
   }
 }

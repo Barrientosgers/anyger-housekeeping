@@ -55,6 +55,18 @@ export interface BookingInput {
   website: string; // honeypot: left empty by people
 }
 
+export type TranslationOutcome =
+  | { status: 'disabled' | 'empty' | 'same_language' | 'unknown_language' }
+  | {
+      status: 'translated';
+      sourceLang: 'es' | 'en';
+      targetLang: 'es' | 'en';
+      original: string;
+      translation: string;
+      cached: boolean;
+    }
+  | { status: 'unavailable'; reason: 'timeout' | 'network' | 'rejected' | 'quota' | 'limit' };
+
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -127,4 +139,7 @@ export const api = {
   acceptRequest: (id: string, input: AppointmentInput) =>
     request<Saved>('POST', `/api/requests/${id}/accept`, withRepeat(input)),
   declineRequest: (id: string) => request<void>('POST', `/api/requests/${id}/decline`),
+  /** Translate a stored note into `target`. The server reads the note itself; only an id is sent. */
+  translateNote: (entity: 'request' | 'appointment', id: string, target: 'es' | 'en') =>
+    request<TranslationOutcome>('POST', '/api/translations', { entity, id, target }),
 };

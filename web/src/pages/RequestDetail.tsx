@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { type BookingRequest, api } from '../api';
 import { formatFullDate, formatTime } from '../dates';
 import { errorMessage } from '../errors';
+import { TranslatedNote } from '../components';
 import { repeatLabel } from '../repeat';
 
 export default function RequestDetail() {
@@ -91,7 +92,9 @@ export default function RequestDetail() {
         {req.notes && (
           <>
             <dt>{t('requests.notes')}</dt>
-            <dd className="notes">{req.notes}</dd>
+            <dd>
+              <TranslatedNote entity="request" id={req.id} notes={req.notes} />
+            </dd>
           </>
         )}
         <dt>{t('requests.clientLang')}</dt>

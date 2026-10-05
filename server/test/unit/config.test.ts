@@ -77,3 +77,37 @@ describe('text message configuration', () => {
     expect(msg).toContain('HTTPSMS_FROM');
   });
 });
+
+describe('translation configuration', () => {
+  it('is off by default', () => {
+    const c = loadConfig(base as NodeJS.ProcessEnv);
+    expect(c.TRANSLATE_PROVIDER).toBe('none');
+    expect(c.TRANSLATE_DAILY_LIMIT).toBe(200);
+    expect(c.ANTHROPIC_MODEL).toBe('claude-opus-5-5');
+  });
+
+  it('cloudflare needs its account id and token; claude needs its key', () => {
+    const cf = err({ TRANSLATE_PROVIDER: 'cloudflare' })!;
+    expect(cf).toContain('CLOUDFLARE_ACCOUNT_ID');
+    expect(cf).toContain('CLOUDFLARE_API_TOKEN');
+    expect(err({ TRANSLATE_PROVIDER: 'claude' })).toContain('ANTHROPIC_API_KEY');
+  });
+
+  it('a complete setup loads, and secrets never appear in errors', () => {
+    expect(
+      loadConfig({
+        ...base,
+        TRANSLATE_PROVIDER: 'cloudflare',
+        CLOUDFLARE_ACCOUNT_ID: 'acc',
+        CLOUDFLARE_API_TOKEN: 'tok',
+      } as NodeJS.ProcessEnv).CLOUDFLARE_LANG_FORMAT,
+    ).toBe('code');
+    const msg = err({
+      TRANSLATE_PROVIDER: 'cloudflare',
+      CLOUDFLARE_API_TOKEN: 'sekret-token-xyz',
+      CLOUDFLARE_LANG_FORMAT: 'bogus',
+    })!;
+    expect(msg).not.toContain('sekret-token-xyz');
+    expect(msg).toContain('CLOUDFLARE_LANG_FORMAT');
+  });
+});

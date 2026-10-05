@@ -27,3 +27,12 @@ services:
         sync: false
       - key: HTTPSMS_FROM
         sync: false
+      # Translation of client notes (Phase 5). Leave TRANSLATE_PROVIDER unset to keep it off.
+      - key: TRANSLATE_PROVIDER
+        sync: false
+      - key: CLOUDFLARE_ACCOUNT_ID
+        sync: false
+      - key: CLOUDFLARE_API_TOKEN
+        sync: false
+      - key: CLOUDFLARE_LANG_FORMAT
+        sync: false
