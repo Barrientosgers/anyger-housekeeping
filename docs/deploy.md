@@ -28,11 +28,15 @@ unset DATABASE_URL
 
 You will be asked for the password twice (hidden). Use a long passphrase they can type, 12+ characters.
 
-## 4. Keep it awake (optional, free)
+## 4. Share the booking link
+
+Clients use `https://<your-url>/book`. Put it on a business card, text it to new clients, or save it as a shortcut on your phone. Requests show up as a yellow banner on the calendar. Nothing is emailed or texted yet (Phase 4 adds a text to your dad).
+
+## 5. Keep it awake (optional, free)
 
 Render's free service sleeps when idle, so the first open can take 30-60 seconds. Create a free monitor at uptimerobot.com (or cron-job.org) that requests `https://<your-url>/healthz` every 10-14 minutes.
 
-## 5. Backups
+## 6. Backups
 
 Neon free-tier backup retention is limited. Take a manual backup occasionally:
 

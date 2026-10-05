@@ -15,6 +15,15 @@ function savedLanguage(): Lang {
   }
 }
 
+/** True once someone on this device has picked a language with the toggle. */
+export function hasSavedLanguage(): boolean {
+  try {
+    return localStorage.getItem(STORAGE_KEY) !== null;
+  } catch {
+    return false;
+  }
+}
+
 export function setLanguage(lang: Lang) {
   try {
     localStorage.setItem(STORAGE_KEY, lang);

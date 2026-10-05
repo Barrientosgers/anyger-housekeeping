@@ -4,6 +4,7 @@ import { loadConfig } from './config.js';
 import { createPool } from './db/pool.js';
 import { migrate } from './db/migrate.js';
 import { createLogger } from './logger.js';
+import { purgeOldRequests } from './services/requests.js';
 
 const config = loadConfig();
 const logger = createLogger(config.LOG_LEVEL);
@@ -29,6 +30,14 @@ if (config.SENTRY_DSN) {
 const pool = createPool(config.DATABASE_URL, config.NODE_ENV === 'production');
 const applied = await migrate(pool);
 if (applied.length) logger.info({ applied }, 'migrations applied');
+
+// Keep personal data short-lived: remove old booking requests now and twice a day.
+const purge = () =>
+  purgeOldRequests(pool)
+    .then((n) => n && logger.info({ removed: n }, 'old booking requests purged'))
+    .catch((err: Error) => logger.error({ errMessage: err.message }, 'purge failed'));
+void purge();
+setInterval(purge, 12 * 60 * 60 * 1000).unref();
 
 const app = createApp({ config, pool, logger });
 const server = app.listen(config.PORT, () =>

@@ -16,7 +16,8 @@
     "submit": "Entrar"
   },
   "nav": {
-    "logout": "Salir"
+    "logout": "Salir",
+    "requests": "Solicitudes"
   },
   "calendar": {
     "title": "Calendario",
@@ -57,7 +58,8 @@
     "repeat_weekly": "Cada semana",
     "repeat_biweekly": "Cada 2 semanas",
     "repeat_monthly": "Cada mes, el {{ordinal}} {{weekday}}",
-    "repeatUntil": "Repetir hasta (opcional)"
+    "repeatUntil": "Repetir hasta (opcional)",
+    "repeat_monthlyPlain": "Cada mes"
   },
   "detail": {
     "title": "Cita",
@@ -83,7 +85,9 @@
   "notice": {
     "saved": "La cita se guardó.",
     "savedOverlap": "La cita se guardó, pero se cruza con otra cita.",
-    "cancelled": "La cita se canceló."
+    "cancelled": "La cita se canceló.",
+    "requestAccepted": "Solicitud aceptada. La cita se guardó.",
+    "requestDeclined": "Solicitud rechazada."
   },
   "errors": {
     "generic": "Algo salió mal. Intente de nuevo.",
@@ -95,7 +99,10 @@
     "not_found": "No se encontró la cita.",
     "unauthenticated": "Su sesión terminó. Entre de nuevo.",
     "scope_required": "Elija qué citas cambiar.",
-    "invalid_range": "Las fechas no son válidas."
+    "invalid_range": "Las fechas no son válidas.",
+    "busy": "Hay muchas solicitudes ahora. Intente más tarde o llámenos.",
+    "rate_limited": "Demasiados intentos. Intente de nuevo más tarde.",
+    "already_decided": "Esta solicitud ya fue respondida."
   },
   "ordinal": {
     "1": "primer",
@@ -110,5 +117,45 @@
     "future": "Esta y las siguientes",
     "repeatNote": "Cambiar cómo se repite aplica a esta cita y a las siguientes.",
     "back": "Volver"
+  },
+  "book": {
+    "title": "Pedir una limpieza",
+    "intro": "Llene este formulario y le contactaremos para confirmar.",
+    "name": "Su nombre",
+    "phone": "Su teléfono",
+    "address": "Dirección de la limpieza",
+    "date": "Fecha que prefiere",
+    "time": "Hora que prefiere",
+    "repeat": "¿Con qué frecuencia?",
+    "once": "Una sola vez",
+    "notes": "¿Algo más que debamos saber? (opcional)",
+    "submit": "Enviar solicitud",
+    "sending": "Enviando…",
+    "privacy": "Usamos sus datos solo para programar su limpieza y contactarle.",
+    "thanksTitle": "¡Gracias!",
+    "thanksBody": "Recibimos su solicitud. Le llamaremos pronto para confirmar."
+  },
+  "requests": {
+    "title": "Solicitudes",
+    "empty": "No hay solicitudes pendientes.",
+    "banner_one": "Tiene {{count}} solicitud nueva",
+    "banner_other": "Tiene {{count}} solicitudes nuevas",
+    "detailTitle": "Solicitud",
+    "wants": "Quiere",
+    "where": "Dónde",
+    "phone": "Teléfono",
+    "notes": "Notas",
+    "received": "Recibida el {{date}}",
+    "clientLang": "Idioma del cliente",
+    "es": "Español",
+    "en": "English",
+    "once": "Una sola vez",
+    "accept": "Aceptar",
+    "decline": "Rechazar",
+    "declineTitle": "¿Rechazar esta solicitud?",
+    "declineConfirm": "Sí, rechazar",
+    "declineKeep": "No, volver",
+    "acceptTitle": "Aceptar solicitud",
+    "acceptHint": "Revise los datos y cambie la fecha o la hora si hace falta."
   }
 }

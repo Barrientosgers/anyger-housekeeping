@@ -29,6 +29,32 @@ export interface AppointmentInput {
   repeatUntil: string;
 }
 
+export interface BookingRequest {
+  id: string;
+  clientName: string;
+  clientPhone: string;
+  address: string;
+  preferredDate: string;
+  preferredTime: string;
+  repeat: 'none' | Freq;
+  notes: string | null;
+  lang: 'es' | 'en';
+  status: 'pending' | 'accepted' | 'declined';
+  receivedDate: string;
+}
+
+export interface BookingInput {
+  clientName: string;
+  clientPhone: string;
+  address: string;
+  preferredDate: string;
+  preferredTime: string;
+  repeat: 'none' | Freq;
+  notes: string;
+  lang: string;
+  website: string; // honeypot: left empty by people
+}
+
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -93,4 +119,12 @@ export const api = {
       `/api/appointments/${encodeURIComponent(id)}/cancel`,
       scope ? { scope } : undefined,
     ),
+  submitBooking: (input: BookingInput) =>
+    request<{ ok: true }>('POST', '/api/public/requests', input),
+  requestCount: () => request<{ pending: number }>('GET', '/api/requests/count'),
+  listRequests: () => request<{ requests: BookingRequest[] }>('GET', '/api/requests'),
+  getRequest: (id: string) => request<{ request: BookingRequest }>('GET', `/api/requests/${id}`),
+  acceptRequest: (id: string, input: AppointmentInput) =>
+    request<Saved>('POST', `/api/requests/${id}/accept`, withRepeat(input)),
+  declineRequest: (id: string) => request<void>('POST', `/api/requests/${id}/decline`),
 };
