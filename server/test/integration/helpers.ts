@@ -5,22 +5,30 @@ import { loadConfig } from '../../src/config.js';
 import { migrate } from '../../src/db/migrate.js';
 import { createPool } from '../../src/db/pool.js';
 import { createLogger } from '../../src/logger.js';
+import type { Notifier } from '../../src/services/notify.js';
 
 export const TEST_EMAIL = 'tester@example.com';
 export const TEST_PASSWORD = 'correct horse battery staple';
 export const CSRF = { 'X-Requested-With': 'anyger' };
 
-export async function setup(opts: { rateLimit?: boolean } = {}) {
+export async function setup(
+  opts: {
+    rateLimit?: boolean;
+    makeNotifier?: (pool: ReturnType<typeof createPool>) => Notifier;
+  } = {},
+) {
   const config = loadConfig();
   const pool = createPool(config.DATABASE_URL, false);
   await migrate(pool);
+  const notifier = opts.makeNotifier?.(pool);
   const app = createApp({
     config,
     pool,
     logger: createLogger('silent'),
     rateLimit: opts.rateLimit,
+    notifier,
   });
-  return { pool, app };
+  return { pool, app, notifier };
 }
 
 export async function resetDb(pool: ReturnType<typeof createPool>) {

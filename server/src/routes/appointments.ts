@@ -14,6 +14,7 @@ import {
   scopeBody,
   updateAppointment,
 } from '../services/appointments.js';
+import type { Notifier } from '../services/notify.js';
 import { audit, countUsage } from '../services/usage.js';
 
 // A stored appointment's uuid, or the id of a visit generated from a repeating series.
@@ -25,7 +26,7 @@ function mapTimeError(err: unknown): never {
   throw err;
 }
 
-export function appointmentsRouter(pool: pg.Pool) {
+export function appointmentsRouter(pool: pg.Pool, notifier: Notifier) {
   const router = Router();
 
   router.get('/', async (req, res, next) => {
@@ -64,6 +65,7 @@ export function appointmentsRouter(pool: pg.Pool) {
         await audit(pool, req.session.userId, 'create', 'appointment', result.appointment.id);
         await countUsage(pool, 'appointments_created');
       }
+      notifier.notify('appointment_created');
       res.status(201).json(result);
     } catch (err) {
       next(err);
@@ -80,6 +82,7 @@ export function appointmentsRouter(pool: pg.Pool) {
       if (!result) throw new AppError(404, 'not_found');
       const { audit: a, ...body } = result;
       await audit(pool, req.session.userId, a.action, a.entity, a.id);
+      notifier.notify('appointment_changed');
       res.json(body);
     } catch (err) {
       next(err);
@@ -100,6 +103,7 @@ export function appointmentsRouter(pool: pg.Pool) {
         result.audit.id,
       );
       await countUsage(pool, 'appointments_cancelled');
+      notifier.notify('appointment_cancelled');
       res.json({ appointment: result.appointment });
     } catch (err) {
       next(err);

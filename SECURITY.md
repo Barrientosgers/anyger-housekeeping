@@ -35,7 +35,7 @@ The app stores clients' **names, phone numbers, street addresses, and cleaning n
 | A07 | Identification & Authentication Failures | Login rate limit (10 / 15 min / IP); identical error for wrong password vs unknown email, with a dummy hash verification so timing does not reveal accounts; session id regenerated on login; logout destroys the server-side session. | `routes/auth.ts`                                                     |
 | A08 | Software & Data Integrity                | CI on every push; lockfile-pinned installs (`npm ci`); no runtime code download.                                                                                                                                                       | CI                                                                   |
 | A09 | Logging & Monitoring Failures            | Structured JSON logs with request ids; audit log of logins and changes; optional error tracking; no PII in any of them.                                                                                                                | `logger.ts`, `services/usage.ts`                                     |
-| A10 | SSRF                                     | No user-controlled outbound requests today. Phase 5 translation calls a fixed Anthropic host only.                                                                                                                                     | n/a yet                                                              |
+| A10 | SSRF                                     | No user-controlled outbound requests. The server only calls fixed hosts: the text provider's API (api.httpsms.com, or api.twilio.com if that adapter is ever enabled). Phase 5 will call a fixed Anthropic host.                       | `services/sms/`                                                      |
 
 ### CSRF
 
@@ -62,6 +62,19 @@ State-changing requests must include `X-Requested-With: anyger`. Browsers cannot
 
 Booking requests hold a stranger's name, phone, and address, so they are deleted automatically: **decided requests after 30 days**, **unanswered ones after 60 days**. A cleanup runs at startup and every 12 hours. Accepting a request copies the details into an appointment the owners control; the request itself is not kept longer. Tested.
 
+## Text messages
+
+Texts to the owner add an outbound channel and a new way for a stranger to cause side effects (the public form can trigger a text), so they are constrained:
+
+| Concern                                   | Control                                                                                                                                                                                                                                    |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Personal data leaving the server          | Texts are fixed, generic sentences. A test asserts none of a client's name, address, phone, or note ever appears in a message. The provider and the sender phone only see the owner's number and that sentence.                            |
+| Public form used to flood or run up costs | Dropped spam and invalid submissions send nothing; the form is rate limited (5/hour/IP); a **10-minute cooldown** per kind of text turns bursts into one; a **hard monthly cap** (default 150, under the free 200) stops sending entirely. |
+| Secrets                                   | API key, sender number, and the owner's number are environment variables only, never logged. Misconfiguration **fails closed at startup** and names the setting, never its value.                                                          |
+| Provider outage or slowness               | Sending is fire-and-forget with a 5 s timeout. A failure never fails or delays the user's request; it is counted (`sms_failed`) and logged without personal data.                                                                          |
+| Logs                                      | One line per text: event, provider, outcome. Never the number or message body (verified by running the built server: 0 matches).                                                                                                           |
+| Lock-in                                   | `SmsProvider` interface with httpSMS, Twilio (mocked tests only), and fake adapters.                                                                                                                                                       |
+
 ## Threat model (short)
 
 | Threat                               | Mitigation                                                                                                                                                                    |
@@ -78,6 +91,8 @@ Booking requests hold a stranger's name, phone, and address, so they are deleted
 
 - **Shared login, no MFA.** Both parents use one account for simplicity (they are not tech-savvy). Trade-off accepted; revisit if more staff are added.
 - **Rate limit is per IP and in memory.** Fine for one instance; would need a shared store if scaled out. A determined attacker with many IPs is limited only by the 100-pending cap, not stopped; if real spam appears, add a free CAPTCHA (Cloudflare Turnstile).
+- **Texts depend on a third-party relay and a phone.** If httpSMS is down or the sender phone is off, texts are delayed or lost (the app keeps working and records the failure). httpSMS offers end-to-end encryption, which is not enabled because the content is already generic.
+- **Shared login.** The app cannot tell which parent made a change, so the owner is also texted about their own edits.
 - **No confirmation to the client.** Clients are not emailed or texted (by design: less data). A request is also not verified to come from the phone number given.
 - **No application-level field encryption.** Relies on provider encryption at rest.
 - **Free-tier hosting** has no uptime or backup guarantees. Back up with `pg_dump` periodically (see `docs/deploy.md`).

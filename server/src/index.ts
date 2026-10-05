@@ -4,7 +4,9 @@ import { loadConfig } from './config.js';
 import { createPool } from './db/pool.js';
 import { migrate } from './db/migrate.js';
 import { createLogger } from './logger.js';
+import { createNotifier } from './services/notify.js';
 import { purgeOldRequests } from './services/requests.js';
+import { createSmsProvider } from './services/sms/index.js';
 
 const config = loadConfig();
 const logger = createLogger(config.LOG_LEVEL);
@@ -39,13 +41,31 @@ const purge = () =>
 void purge();
 setInterval(purge, 12 * 60 * 60 * 1000).unref();
 
-const app = createApp({ config, pool, logger });
+const smsProvider = createSmsProvider(config);
+logger.info({ smsProvider: smsProvider?.name ?? 'none' }, 'text messages');
+const notifier = createNotifier({
+  provider: smsProvider,
+  to: config.NOTIFY_PHONE_NUMBER,
+  pool,
+  logger,
+  appUrl: config.APP_URL,
+  cooldownMs: config.SMS_COOLDOWN_MINUTES * 60_000,
+  monthlyLimit: config.SMS_MONTHLY_LIMIT,
+});
+
+const app = createApp({ config, pool, logger, notifier });
 const server = app.listen(config.PORT, () =>
   logger.info({ port: config.PORT }, 'server listening'),
 );
 
 for (const signal of ['SIGTERM', 'SIGINT'] as const) {
   process.on(signal, () => {
-    server.close(() => void pool.end().then(() => process.exit(0)));
+    server.close(
+      () =>
+        void notifier
+          .flush()
+          .then(() => pool.end())
+          .then(() => process.exit(0)),
+    );
   });
 }
