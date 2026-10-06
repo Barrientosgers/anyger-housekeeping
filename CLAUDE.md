@@ -44,3 +44,12 @@ Bilingual (Spanish default / English) scheduling app for a small family house-cl
 4. SMS via httpSMS (an Android phone sends; texts are generic, no PII) (merged; off until set up)
 5. Translation of notes: Cloudflare Workers AI (free) is the real provider; the Claude adapter is built but OFF because the Claude API is not free (built; needs a free Cloudflare token)
 6. Public-repo hardening, metrics write-up (built; repo stays PRIVATE until the owner decides)
+
+## Status (as of 2026-10-06) and how to resume
+
+- **All 6 phases are built, tested, merged, and live.** `main` is the only branch. The repo is PRIVATE with an MIT license. Hosting is free-tier (Render + Neon).
+- **Off until the owner sets them up (optional):** texts to the owner (`docs/sms-setup.md`) and note translation (`docs/translation-setup.md`).
+- **Waiting on real use:** the owners are starting to use the app. After 2-4 weeks, run `npm run usage -w server` (steps in `docs/metrics.md`), subtract the **baseline recorded there (2026-10-06)**, and turn the difference into final résumé bullets. Never present development or testing counts as customer activity.
+- **Decisions already made:** keep the author email in history as is; describe the project as "a small family business app" (no family details in docs); keep the repo private for now. If it is ever published, consider a fresh repo with clean history and rename the Render service first (old commits contain the old address and wording).
+- **How we work:** one step at a time with exact commands; never ask for secrets in chat (use `read -rs` hidden prompts); open a pull request for every change and merge only when asked; report only measured numbers.
+- **Common tasks:** add or reset a login = `npm run user:create -w server -- <email> admin` (see `docs/deploy.md`). Security probe = `scripts/security-probe.sh <url>`. If `tsx` commands fail with a missing `@esbuild` file, see the README troubleshooting note.
