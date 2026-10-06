@@ -47,10 +47,8 @@ Each is pinned by a test, the probe, or both.
 
 Listed in full in [SECURITY.md](../SECURITY.md) under "Known gaps". In short: one shared login with no second factor; in-memory rate limits (fine for a single instance); no CAPTCHA (the next step if real spam appears); texts and translations pass through third parties (mitigated by generic texts and note-only translation); free-tier hosting has no uptime or backup guarantees; machine translation is less accurate than a large model.
 
-## Owner actions (things I cannot do from here)
+## Owner actions (status)
 
-1. **Turn on F1's fix in production.** In Render, add `TRUST_CLOUDFLARE_IP` = `true`, then Save, rebuild, and deploy. Then run
-   `scripts/security-probe.sh https://<your-url> --rate-limit`
-   and confirm the statuses are consistent (a few 400s, then 429 for every request after). Using up the allowance blocks _your_ network from the booking form for an hour; that is expected.
-2. **Decide before making the repo public** (details in the Phase 6 summary): the personal email stored in every commit, a license, and branch protection.
-3. After it is public, enable GitHub **private vulnerability reporting** and confirm **secret scanning with push protection** is on.
+1. **F1's fix in production:** done. `TRUST_CLOUDFLARE_IP=true` is set in Render, and the probe's `--rate-limit` check passes against the live site (consistent: five allowed, then refused).
+2. **Before publishing:** the history was re-scanned with both tools on the final commit (no real secrets; the only reports are example placeholders and an untracked local `.env`), and the live probe passed 25 of 25.
+3. **After publishing (2026-10-06):** GitHub private vulnerability reporting, secret scanning, and push protection are enabled, and `main` is protected (required checks, no force-push, no deletion).

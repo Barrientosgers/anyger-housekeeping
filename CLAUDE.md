@@ -34,7 +34,7 @@ Bilingual (Spanish default / English) scheduling app for a small family house-cl
 - `main` branch, small clear commits, one feature branch per phase (`phase-N-...`) that Gerson merges after testing.
 - Build one phase at a time; stop at the end of each phase.
 - End of phase: summary + decisions, 2-3 honest résumé bullets (real numbers only), 2 interview questions with key points.
-- Repo is PRIVATE until a full-history secret/PII scan is done.
+- The repo is PUBLIC (since 2026-10-06) after a full-history secret/PII scan. Never commit secrets or real client data; secret scanning and push protection are on.
 
 ## Phases
 
@@ -47,9 +47,9 @@ Bilingual (Spanish default / English) scheduling app for a small family house-cl
 
 ## Status (as of 2026-10-06) and how to resume
 
-- **All 6 phases are built, tested, merged, and live.** `main` is the only branch. The repo is PRIVATE with an MIT license. Hosting is free-tier (Render + Neon).
+- **All 6 phases are built, tested, merged, and live.** `main` is the only branch. The repo is PUBLIC with an MIT license; `main` is protected (required checks `test` and `secret-scan`; no force-push or deletion). Hosting is free-tier (Render + Neon).
 - **Off until the owner sets them up (optional):** texts to the owner (`docs/sms-setup.md`) and note translation (`docs/translation-setup.md`).
 - **Waiting on real use:** the owners are starting to use the app. After 2-4 weeks, run `npm run usage -w server` (steps in `docs/metrics.md`), subtract the **baseline recorded there (2026-10-06)**, and turn the difference into final résumé bullets. Never present development or testing counts as customer activity.
-- **Decisions already made:** keep the author email in history as is; describe the project as "a small family business app" (no family details in docs); keep the repo private for now. If it is ever published, consider a fresh repo with clean history and rename the Render service first (old commits contain the old address and wording).
+- **Decisions already made:** keep the author email in history as is; describe the project as "a small family business app" (no family details in docs); the repo was published as is (author email, older wording, and the live address remain in old commits, accepted). If the address must change later, move the app to a custom domain and retire the old one.
 - **How we work:** one step at a time with exact commands; never ask for secrets in chat (use `read -rs` hidden prompts); open a pull request for every change and merge only when asked; report only measured numbers.
 - **Common tasks:** add or reset a login = `npm run user:create -w server -- <email> admin` (see `docs/deploy.md`). Security probe = `scripts/security-probe.sh <url>`. If `tsx` commands fail with a missing `@esbuild` file, see the README troubleshooting note.
