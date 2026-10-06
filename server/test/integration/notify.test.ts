@@ -72,7 +72,7 @@ const counters = async () =>
   );
 
 describe('texts to the owner', () => {
-  it('a new booking request texts your dad a generic message with the app link', async () => {
+  it('a new booking request texts the owner a generic message with the app link', async () => {
     await submit().expect(201);
     await ctx.notifier!.flush();
     expect(sms.sent).toEqual([

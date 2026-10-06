@@ -50,7 +50,7 @@ Listed in full in [SECURITY.md](../SECURITY.md) under "Known gaps". In short: on
 ## Owner actions (things I cannot do from here)
 
 1. **Turn on F1's fix in production.** In Render, add `TRUST_CLOUDFLARE_IP` = `true`, then Save, rebuild, and deploy. Then run
-   `scripts/security-probe.sh https://anyger-housekeeping.onrender.com --rate-limit`
+   `scripts/security-probe.sh https://<your-url> --rate-limit`
    and confirm the statuses are consistent (a few 400s, then 429 for every request after). Using up the allowance blocks _your_ network from the booking form for an hour; that is expected.
 2. **Decide before making the repo public** (details in the Phase 6 summary): the personal email stored in every commit, a license, and branch protection.
 3. After it is public, enable GitHub **private vulnerability reporting** and confirm **secret scanning with push protection** is on.

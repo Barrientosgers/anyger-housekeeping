@@ -1,10 +1,10 @@
 # AnyGer's Housekeeping — project guide
 
-Bilingual (Spanish default / English) scheduling app for my parents' house-cleaning business, replacing a paper calendar. Real product for real users AND a portfolio project (SWE / Forward Deployed / security-leaning roles). Build it like production software: tested, secure, deployed, documented, measurable. AI is one feature, not the center.
+Bilingual (Spanish default / English) scheduling app for a small family house-cleaning business, replacing a paper calendar. Real product for real users AND a portfolio project (SWE / Forward Deployed / security-leaning roles). Build it like production software: tested, secure, deployed, documented, measurable. AI is one feature, not the center.
 
 ## Users
 
-- Parents (primary): older, Spanish-first, not tech-savvy. Treat as real customers; feedback gathered after each phase.
+- Owners (primary users): older, Spanish-first, not tech-savvy. Treat as real customers; feedback gathered after each phase.
 - Clients: public booking form (Phase 3).
 - Gerson: admin and developer.
 

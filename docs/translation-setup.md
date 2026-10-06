@@ -1,6 +1,6 @@
 # Translating client notes (free, with Cloudflare)
 
-Clients write notes in English or Spanish. The app can show your parents each note **in the language they are reading the app in**, with the **original always shown first and unchanged**, and the translation beneath it labelled "Traducción automática".
+Clients write notes in English or Spanish. The app can show the owners each note **in the language they are reading the app in**, with the **original always shown first and unchanged**, and the translation beneath it labelled "Traducción automática".
 
 It is **off until you turn it on**, and it is never required: if it is off or down, the note simply shows as written.
 

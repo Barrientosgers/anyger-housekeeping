@@ -1,4 +1,4 @@
-# Text messages to your dad (free, using an Android phone)
+# Text messages to the owner (free, using an Android phone)
 
 The app can text one phone number when a booking request arrives or an appointment is created, changed, or cancelled. It is **off until you turn it on**; nothing else changes if you never do.
 
@@ -14,16 +14,16 @@ The app tells [httpSMS](https://httpsms.com) "send this text". httpSMS tells a s
 
 What you need:
 
-- An Android phone with a text plan that stays **on and online** (for example your mom's Pixel). It must be a **different phone** from your dad's: a phone texting itself does not notify anyone.
+- An Android phone with a text plan that stays **on and online** (for example a family member's phone or a spare one). It must be a **different phone** from the one being notified: a phone texting itself does not notify anyone.
 - A free httpSMS account.
 
 ## Privacy: what the texts say
 
 Texts are deliberately generic, for example:
 
-> AnyGer's: tiene una solicitud nueva. Revise la app: https://anyger-housekeeping.onrender.com
+> AnyGer's: tiene una solicitud nueva. Revise la app: https://your-app.onrender.com
 
-They never contain a client's name, address, phone number, or notes. httpSMS and the sender phone only ever see your dad's number and that generic sentence. Your dad's number lives only in a Render setting, never in the code or GitHub.
+They never contain a client's name, address, phone number, or notes. httpSMS and the sender phone only ever see the owner's number and that generic sentence. The owner's number lives only in a Render setting, never in the code or GitHub.
 
 ## Setup (about 20 minutes)
 
@@ -34,17 +34,17 @@ I have read httpSMS's API documentation, but I have **not** installed their Andr
 3. **Copy your API key** from httpsms.com/settings. Treat it like a password.
 4. **Set these in Render** (service > Environment > Edit), then **Save, rebuild, and deploy**:
 
-   | Name                  | Value                                      |
-   | --------------------- | ------------------------------------------ |
-   | `SMS_PROVIDER`        | `httpsms`                                  |
-   | `NOTIFY_PHONE_NUMBER` | your dad's number, like `+15551234567`     |
-   | `HTTPSMS_FROM`        | the sender phone's number, same format     |
-   | `HTTPSMS_API_KEY`     | the key from step 3                        |
-   | `APP_URL`             | `https://anyger-housekeeping.onrender.com` |
+   | Name                  | Value                                   |
+   | --------------------- | --------------------------------------- |
+   | `SMS_PROVIDER`        | `httpsms`                               |
+   | `NOTIFY_PHONE_NUMBER` | the owner's number, like `+15551234567` |
+   | `HTTPSMS_FROM`        | the sender phone's number, same format  |
+   | `HTTPSMS_API_KEY`     | the key from step 3                     |
+   | `APP_URL`             | `https://your-app.onrender.com`         |
 
    Numbers must start with `+` and the country code. If a setting is missing or malformed, the app **refuses to start** and the Render log names the setting (never its value), so a typo cannot silently drop texts.
 
-5. **Test it:** create a test appointment in the app. Your dad's phone should get a text within about a minute. Then cancel the test appointment.
+5. **Test it:** create a test appointment in the app. The owner's phone should get a text within about a minute. Then cancel the test appointment.
 
 To turn texting off at any time, set `SMS_PROVIDER` to `none` (or delete the variable) and redeploy.
 
@@ -56,7 +56,7 @@ To turn texting off at any time, set `SMS_PROVIDER` to `none` (or delete the var
 | Monthly cap                             | 150 (`SMS_MONTHLY_LIMIT`)                             | Stays under the 200 free messages so you can never pay by surprise.                                                                     |
 | Spam                                    | The public form's trap field and rate limit run first | Dropped spam never reaches the text step.                                                                                               |
 
-Two parents share one login, so the app cannot tell who made a change. Your dad will also get a text for changes he makes himself. Accepting a request does **not** send a text.
+The owners share one login, so the app cannot tell who made a change. The owner being notified will also get a text for changes they make themselves. Accepting a request does **not** send a text.
 
 ## If a text does not arrive
 

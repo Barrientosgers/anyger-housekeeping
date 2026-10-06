@@ -109,11 +109,11 @@ Translating means a client's free-text note leaves our server for a third party,
 
 ## Known gaps (honest list)
 
-- **Shared login, no MFA.** Both parents use one account for simplicity (they are not tech-savvy). Trade-off accepted; revisit if more staff are added.
+- **Shared login, no MFA.** The owners share one account for simplicity (they are not tech-savvy). Trade-off accepted; revisit if more staff are added.
 - **Rate limit is per IP and in memory.** Fine for one instance; would need a shared store if scaled out. A determined attacker with many IPs is limited only by the 100-pending cap, not stopped; if real spam appears, add a free CAPTCHA (Cloudflare Turnstile).
 - **Translations depend on a third party and are machine quality.** A note that contains an address is sent along with it. Cloudflare's model is free but less accurate than a large model on informal text, and the owners are told it is an _automatic_ translation. The original is always shown beside it.
 - **Texts depend on a third-party relay and a phone.** If httpSMS is down or the sender phone is off, texts are delayed or lost (the app keeps working and records the failure). httpSMS offers end-to-end encryption, which is not enabled because the content is already generic.
-- **Shared login.** The app cannot tell which parent made a change, so the owner is also texted about their own edits.
+- **Shared login.** The app cannot tell which owner made a change, so the owner is also texted about their own edits.
 - **No confirmation to the client.** Clients are not emailed or texted (by design: less data). A request is also not verified to come from the phone number given.
 - **No application-level field encryption.** Relies on provider encryption at rest.
 - **Free-tier hosting** has no uptime or backup guarantees. Back up with `pg_dump` periodically (see `docs/deploy.md`).
@@ -121,4 +121,4 @@ Translating means a client's free-text note leaves our server for a third party,
 
 ## Reporting a problem
 
-Please report security issues **privately**, not in a public issue: use GitHub's "Report a vulnerability" button on the repository's Security tab. This is a small family-business app maintained by one person, so there is no bounty and no guaranteed response time, but reports are taken seriously.
+Please report security issues **privately**, not in a public issue: use GitHub's "Report a vulnerability" button on the repository's Security tab. This is a small-business app maintained by one person, so there is no bounty and no guaranteed response time, but reports are taken seriously.
