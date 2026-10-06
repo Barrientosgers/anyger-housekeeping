@@ -1,9 +1,25 @@
 # AnyGer's Housekeeping
 
-A calm, Spanish-first scheduling app that replaces a paper calendar for a small family house-cleaning business. Built for its owners, who are not tech-savvy, and engineered like production software: tested, secured, deployed, and documented.
+[![CI](https://github.com/Barrientosgers/anyger-housekeeping/actions/workflows/ci.yml/badge.svg)](https://github.com/Barrientosgers/anyger-housekeeping/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+A calm, **Spanish-first scheduling app** that replaces a paper calendar for a small family house-cleaning business. Built for owners who are not tech-savvy, and engineered like production software: tested, secured, deployed, and documented, on **free hosting at zero cost**.
 
 **Live:** a private deployment, not linked here (free hosting; the first load after idle can take 30-60 seconds)
-**Status:** All 6 phases built; security review complete (see below). Live, in use by the owners. See the roadmap below.
+**Status:** All 6 phases built and live; security review complete; handed to the owners (October 2026).
+
+## Highlights
+
+- **Designed for real users.** Large type, plain words next to every action, few choices per screen, no hidden gestures, mobile-first. Lighthouse accessibility score of **100** on the live public page.
+- **Correct with time.** UTC storage, Pacific display, and recurring visits that keep their wall-clock time across daylight-saving changes, with tests on both transitions.
+- **Security by design, then audited.** Argon2id sessions, CSRF protection, strict same-origin CSP, rate limits, a hidden-field spam trap, and a CI scan of the full git history for secrets. A pre-publication review found and fixed six issues, including rate limits that failed behind a CDN proxy ([review](docs/security-review.md)).
+- **Tested.** 279 automated tests (about 94% server and 91% web line coverage) and a CI pipeline that runs lint, typecheck, tests, build, dependency audit, and a secret scan in about a minute.
+- **Honest engineering under a no-cost constraint.** Text alerts and note translation sit behind swappable provider interfaces; the Claude adapter is built but off because the Claude API has no lasting free tier.
+- **Right-sized.** One app, one Postgres database, one Docker deploy. No microservices, because the load does not justify them.
+
+**Read more:** [Case study](docs/case-study.md) · [Architecture](docs/architecture.md) · [Security review](docs/security-review.md) · [Security policy](SECURITY.md) · [Metrics](docs/metrics.md)
+
+_Built with Claude Code (Anthropic's AI coding assistant) as a pair programmer; the case study explains how._
 
 ## Who it's for
 
