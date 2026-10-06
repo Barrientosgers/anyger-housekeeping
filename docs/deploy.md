@@ -13,16 +13,16 @@ No credit card and nothing paid. Free tiers can change; check each provider's cu
 1. Sign up at render.com with GitHub.
 2. **New > Blueprint**, pick this repo; Render reads `render.yaml`.
 3. When asked, paste `DATABASE_URL` (the Neon string). `SESSION_SECRET` is generated for you. `SENTRY_DSN` is optional; leave blank.
-4. Deploy. The app creates its tables on first start. The live URL looks like `https://anyger-housekeeping.onrender.com`.
+4. Deploy. The app creates its tables on first start. The live URL looks like `https://your-app.onrender.com`.
 5. Check `https://<your-url>/healthz` returns `{"ok":true}`.
 
-## 3. Create the parents' login
+## 3. Create the owners' login
 
 From your laptop, without putting the secret in shell history:
 
 ```bash
 read -rs DATABASE_URL && export DATABASE_URL     # paste the Neon string, press Enter
-npm run user:create -w server -- parents@example.com admin
+npm run user:create -w server -- owners@example.com admin
 unset DATABASE_URL
 ```
 
@@ -34,7 +34,7 @@ In the same Environment screen add `TRUST_CLOUDFLARE_IP` = `true`. Render puts C
 
 ## 4. Share the booking link
 
-Clients use `https://<your-url>/book`. Put it on a business card, text it to new clients, or save it as a shortcut on your phone. Requests show up as a yellow banner on the calendar. Nothing is emailed or texted yet (Phase 4 adds a text to your dad).
+Clients use `https://<your-url>/book`. Put it on a business card, text it to new clients, or save it as a shortcut on your phone. Requests show up as a yellow banner on the calendar. Nothing is emailed or texted yet (Phase 4 adds a text to the owner).
 
 ## 5. Keep it awake (optional, free)
 

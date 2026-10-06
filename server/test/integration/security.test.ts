@@ -111,7 +111,7 @@ describe('sessions', () => {
       expect(cookie).toMatch(/Secure/i);
       const expires = new Date(cookie.match(/Expires=([^;]+)/i)![1]!).getTime();
       const days = (expires - Date.now()) / 86_400_000;
-      expect(days).toBeGreaterThan(89); // 90 days: long enough for the parents, not forever
+      expect(days).toBeGreaterThan(89); // 90 days: long enough for the owners, not forever
       expect(days).toBeLessThan(91);
     } finally {
       await prod.pool.end();

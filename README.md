@@ -1,13 +1,13 @@
 # AnyGer's Housekeeping
 
-A calm, Spanish-first scheduling app that replaces a paper calendar for a small family house-cleaning business. Built for my parents, who are not tech-savvy, and engineered like production software: tested, secured, deployed, and documented.
+A calm, Spanish-first scheduling app that replaces a paper calendar for a small family house-cleaning business. Built for its owners, who are not tech-savvy, and engineered like production software: tested, secured, deployed, and documented.
 
-**Live:** https://anyger-housekeeping.onrender.com (free hosting; the first load after idle can take 30-60 seconds)
+**Live:** a private deployment, not linked here (free hosting; the first load after idle can take 30-60 seconds)
 **Status:** All 6 phases built; security review complete (see below). Live, in use by the owners. See the roadmap below.
 
 ## Who it's for
 
-- **My parents** (primary users): older, more comfortable in Spanish. Big text, big buttons, plain words, few choices per screen, no hidden gestures.
+- **The owners** (primary users): older, more comfortable in Spanish. Big text, big buttons, plain words, few choices per screen, no hidden gestures.
 - **Their clients** (Phase 3): a public booking-request form.
 - **Me**: admin and developer.
 
@@ -53,7 +53,7 @@ Phase 5: a note and its automatic translation (shown here with a stand-in transl
 - **Booking requests:** clients fill in a public form at `/book` (Spanish or English). Requests wait as "pending" until the owners **Aceptar** (the form opens prefilled so they can adjust the date or time, and it becomes an appointment or repeating series) or **Rechazar**. A banner on the calendar shows how many are waiting. Spam is handled by a hidden trap field, a rate limit, and a cap on pending requests; old requests are deleted automatically.
 - **Text messages to the owner** (off until configured): a generic text when a request arrives or an appointment is created, changed, or cancelled. Sent for free by an Android phone you own via httpSMS, behind a swappable `SmsProvider` interface, with a cooldown and a monthly cap. See [docs/sms-setup.md](docs/sms-setup.md).
 - **Translation of client notes** (off until configured): a note in the other language is shown with an automatic translation beneath it, and the **original is always kept and shown first**. Free (Cloudflare Workers AI) because the Claude API is not; a Claude adapter is built but off. If translation is down the note simply shows as written. See [docs/translation-setup.md](docs/translation-setup.md).
-- Login required for everything except the booking form. Sessions last 90 days so the parents rarely sign in.
+- Login required for everything except the booking form. Sessions last 90 days so the owners rarely sign in.
 - Times are stored in UTC and shown in Pacific Time. Repeating visits keep their wall-clock time across daylight-saving changes (tested).
 
 ## Roadmap
@@ -134,4 +134,4 @@ A full pre-publication review (history scans with two tools, code review, live p
 
 ## License
 
-[MIT](LICENSE) © 2026 Gerson Barrientos. The code is free to read, use, and adapt. The "AnyGer's Housekeeping" name and the live site belong to the family business; please do not use them to impersonate it. No client data is in this repository.
+[MIT](LICENSE) © 2026 Gerson Barrientos. The code is free to read, use, and adapt. The "AnyGer's Housekeeping" name and the live site belong to a small business; please do not use them to impersonate it. No client data is in this repository.

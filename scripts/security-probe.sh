@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Black-box security checks you can run against any deployment (needs only curl).
 #
-#   scripts/security-probe.sh https://anyger-housekeeping.onrender.com
+#   scripts/security-probe.sh https://your-app.onrender.com
 #   scripts/security-probe.sh http://localhost:3000 --rate-limit
 #
 # It sends only harmless requests: invalid or empty bodies, so nothing is ever stored. The optional

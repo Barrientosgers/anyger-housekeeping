@@ -6,7 +6,7 @@ AnyGer's Housekeeping is **one Node app and one Postgres database**. The Express
 
 ```mermaid
 flowchart LR
-  P["Parents' phone<br/>(React app, Spanish)"] -->|HTTPS| S
+  P["Owners' phone<br/>(React app, Spanish)"] -->|HTTPS| S
   C["Clients<br/>public booking form (/book)"] -->|HTTPS, rate limited| S
   subgraph Render["Render free web service (Docker)"]
     S["Express API + static React build<br/>helmet, sessions, zod, pino"]
@@ -129,7 +129,7 @@ Phase 2 added `series` and two columns on `appointments` (`series_id`, `original
 
 ### Language
 
-Spanish is the default. The one-tap toggle stores the choice **per device** in `localStorage` (guarded, since storage can be blocked), because both parents share one login and may prefer different languages. The server stays language-neutral: it returns error codes and the UI translates them. A test enforces that the Spanish and English files have identical keys.
+Spanish is the default. The one-tap toggle stores the choice **per device** in `localStorage` (guarded, since storage can be blocked), because the owners share one login and may prefer different languages. The server stays language-neutral: it returns error codes and the UI translates them. A test enforces that the Spanish and English files have identical keys.
 
 ### Public booking requests (built in Phase 3)
 
@@ -148,7 +148,7 @@ Spanish is the default. The one-tap toggle stores the choice **per device** in `
 - **Texts are generic by design** ("you have a new request, open the app"), because they cross a third-party relay and a phone. They never carry a name, address, phone number, or note.
 - **The notifier never blocks or fails a request.** It runs after the response logic, fire-and-forget, with a 5 s timeout; errors are contained, counted (`sms_sent`, `sms_failed`), and logged without personal data.
 - **Guards, because the public form can now trigger a text:** a per-kind cooldown (burst becomes one text), a hard monthly cap under the free allowance, and a claim-before-send so concurrent events cannot double-send. State for the cooldown is in memory (fine for one instance; it resets on restart). The monthly cap is read from `usage_counters`, so it survives restarts.
-- **Which events text:** new booking request; appointment created (including a new repeating series), changed, or cancelled. Accepting or declining a request does not (the owners just did it). Both parents share a login, so the app cannot tell who made a change.
+- **Which events text:** new booking request; appointment created (including a new repeating series), changed, or cancelled. Accepting or declining a request does not (the owners just did it). The owners share a login, so the app cannot tell who made a change.
 
 ### Translation (built in Phase 5)
 
@@ -163,13 +163,13 @@ Spanish is the default. The one-tap toggle stores the choice **per device** in `
 ### Authentication
 
 - Email + password, argon2id, server-side sessions in Postgres (revocable), 90-day rolling cookie (`HttpOnly`, `Secure`, `SameSite=Lax`) so older users are not constantly logged out.
-- One shared account for the parents; the schema supports more users and roles.
+- One shared account for the owners; the schema supports more users and roles.
 - CSRF: custom-header requirement + `SameSite`. See `SECURITY.md`.
 - Tradeoff: sessions in Postgres cost one query per request; irrelevant at this scale and avoids JWT revocation problems.
 
 ### Overlapping appointments
 
-A **warning, not a block**: the parents may have a crew. The API returns `overlaps: n` and the UI says so in plain Spanish.
+A **warning, not a block**: the owners may have a crew. The API returns `overlaps: n` and the UI says so in plain Spanish.
 
 ### Free-tier hosting
 
