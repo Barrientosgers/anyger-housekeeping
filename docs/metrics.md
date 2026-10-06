@@ -15,6 +15,22 @@ unset DATABASE_URL
 
 It prints counters by month (appointments created and cancelled, repeating series created, booking requests received / accepted / declined, texts sent / failed, translations performed / failed) and counts of what is currently stored. Copy the real numbers into the table and use only those on a résumé.
 
+### Baseline: the starting line for real use (2026-10-06)
+
+Before the owners began real use, the counters already held numbers from development and testing. They were **not** customer activity and must not be quoted as such. The test data was then cleared in the app, and the counters were read again. That reading is the baseline:
+
+| Counter                           | Baseline (2026-10-06)     |
+| --------------------------------- | ------------------------- |
+| appointments_created              | 8                         |
+| appointments_cancelled            | 7                         |
+| series_created                    | 1                         |
+| requests_received                 | 3                         |
+| requests_accepted                 | 1                         |
+| requests_declined                 | 2                         |
+| sms_sent / translations_performed | 0 (both features are off) |
+
+**Real usage = a later reading minus this baseline.** For example, if `appointments_created` reads 41 in a month, that is 41 - 8 = 33 appointments actually scheduled. The counters only ever go up (cancelling an appointment adds to `appointments_cancelled`; it does not subtract from `appointments_created`), so the subtraction is always valid.
+
 | Measure                         | Value                                                             |
 | ------------------------------- | ----------------------------------------------------------------- |
 | Appointments created            | `[fill in: appointments_created]`                                 |
@@ -48,14 +64,14 @@ Lighthouse, mobile profile (simulated mid-range phone on a slow connection), thr
 | Best practices    | 100, 100, 100                                                                                                                   |
 | SEO               | 82, 82, 82 before adding a meta description and `robots.txt`; those two fixes are in this phase and are **not yet re-measured** |
 
-| Measure                                                      | Value                                                                                                 |
-| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| First / Largest Contentful Paint                             | 1.5 s / 1.5 s                                                                                         |
-| Cumulative Layout Shift                                      | 0                                                                                                     |
-| Total Blocking Time                                          | 70-200 ms                                                                                             |
-| Page weight                                                  | 110 KiB                                                                                               |
-| API latency, warm (`/healthz`, 20 requests, from my network) | min 87 ms, median 122 ms, p95 157 ms                                                                  |
-| Free-tier cold start                                         | **not measured** (it depends on how long the service has been idle; Render documents roughly 30-60 s) |
+| Measure                                                              | Value                                                                                                                                                             |
+| -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| First / Largest Contentful Paint                                     | 1.5 s / 1.5 s                                                                                                                                                     |
+| Cumulative Layout Shift                                              | 0                                                                                                                                                                 |
+| Total Blocking Time                                                  | 70-200 ms                                                                                                                                                         |
+| Page weight                                                          | 110 KiB                                                                                                                                                           |
+| API latency, warm (`/healthz`, 20 requests, from my network)         | min 87 ms, median 122 ms, p95 157 ms                                                                                                                              |
+| Free-tier cold start (first request after the service had been idle) | **22.4 s** on a single measurement (2026-10-06); later requests, 0.25 s. One sample, so treat it as an example, not an average. Render documents roughly 30-60 s. |
 
 The accessibility score is Lighthouse's automated checks only (contrast, labels, names, tap targets, document structure). It is not a substitute for testing with real users; that happened informally with the two owners.
 
