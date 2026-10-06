@@ -96,6 +96,8 @@ npm run dev:server              # API on http://localhost:3000
 npm run dev:web                 # app on http://localhost:5173 (proxies /api)
 ```
 
+If a command such as `npm run dev:server` fails with "The package @esbuild/darwin-arm64 could not be found", npm dropped an optional native file; fix it with `rm -rf node_modules package-lock.json && npm install`.
+
 Run the checks:
 
 ```bash

@@ -32,6 +32,13 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - name: Dev scripts still work (guards against a lockfile that drops native tools)
+        run: |
+          echo 'console.log("tsx ok")' > "$RUNNER_TEMP/smoke.ts"
+          npx -w server tsx "$RUNNER_TEMP/smoke.ts"
+          # Developers on a Mac need the macOS file listed too, even though CI runs on Linux.
+          grep -q '"node_modules/@esbuild/darwin-arm64"' package-lock.json
+          grep -q '"node_modules/@esbuild/linux-x64"' package-lock.json
       - run: npm run lint
       - run: npm run typecheck -w server
       - run: npm run coverage -w server
