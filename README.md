@@ -131,3 +131,7 @@ A full pre-publication review (history scans with two tools, code review, live p
 - [docs/metrics.md](docs/metrics.md): measured quality, performance, and usage numbers
 - [SECURITY.md](SECURITY.md)
 - [CLAUDE.md](CLAUDE.md): project rules and goals for AI-assisted sessions
+
+## License
+
+[MIT](LICENSE) © 2026 Gerson Barrientos. The code is free to read, use, and adapt. The "AnyGer's Housekeeping" name and the live site belong to the family business; please do not use them to impersonate it. No client data is in this repository.
