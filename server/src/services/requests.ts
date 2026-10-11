@@ -14,20 +14,48 @@ const MAX_DAYS_AHEAD = 365;
 
 const dateStr = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
+/** A trimmed optional text field: empty or missing becomes null; otherwise it must pass `schema`. */
+function optionalText(schema: z.ZodType<string>) {
+  return z.preprocess(
+    (v) => (typeof v === 'string' ? v.trim() || null : v),
+    schema.nullable().optional().default(null),
+  );
+}
+
+/** US phone numbers: 10 digits, or 11 with a leading 1. Stored as "(555) 010-0199" so every
+ * request looks the same. Returns null when it is not a plausible number. */
+export function normalizePhone(raw: string): string | null {
+  let d = raw.replace(/\D/g, '');
+  if (d.length === 11 && d.startsWith('1')) d = d.slice(1);
+  if (d.length !== 10 || d[0] === '0' || d[0] === '1') return null;
+  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+}
+
 export const publicRequestInput = z
   .object({
     clientName: z.string().trim().min(1).max(120),
     clientPhone: z
       .string()
       .trim()
-      .min(7)
       .max(30)
       .regex(/^[0-9+()\-.\s]+$/)
-      .refine((v) => v.replace(/\D/g, '').length >= 7),
-    address: z.string().trim().min(1).max(250),
+      .transform(normalizePhone)
+      .refine((v): v is string => v !== null),
+    contactMethod: z.enum(['call', 'text', 'email']).default('call'),
+    contactEmail: optionalText(z.email().max(254)),
+    cleaningType: z.enum(['apartment', 'house', 'office']),
+    // Street and unit are optional; city and ZIP are what the owners need to judge distance.
+    address: optionalText(z.string().max(250)),
+    unit: optionalText(z.string().max(40)),
+    city: z.string().trim().min(1).max(80),
+    zip: z
+      .string()
+      .trim()
+      .regex(/^\d{5}(-\d{4})?$/),
     preferredDate: dateStr,
     preferredTime: z.string().regex(/^\d{2}:\d{2}$/),
     repeat: z.enum(['none', 'weekly', 'biweekly', 'monthly']).default('none'),
+    moveType: z.enum(['none', 'move_in', 'move_out']).default('none'),
     notes: z
       .string()
       .trim()
@@ -39,6 +67,12 @@ export const publicRequestInput = z
     website: z.string().max(200).optional(),
   })
   .superRefine((v, ctx) => {
+    if (v.contactMethod === 'email' && !v.contactEmail) {
+      ctx.addIssue({ code: 'custom', path: ['contactEmail'], message: 'required' });
+    }
+    if (v.moveType !== 'none' && v.repeat !== 'none') {
+      ctx.addIssue({ code: 'custom', path: ['moveType'], message: 'move_is_one_time' });
+    }
     const today = utcToLocal(new Date()).date;
     if (v.preferredDate < today || v.preferredDate > addDays(today, MAX_DAYS_AHEAD)) {
       ctx.addIssue({ code: 'custom', path: ['preferredDate'], message: 'out_of_range' });
@@ -50,7 +84,14 @@ interface Row {
   id: string;
   client_name: string;
   client_phone: string;
-  address: string;
+  address: string | null;
+  unit: string | null;
+  city: string | null;
+  zip: string | null;
+  contact_method: 'call' | 'text' | 'email';
+  contact_email: string | null;
+  cleaning_type: 'apartment' | 'house' | 'office' | null;
+  move_type: 'none' | 'move_in' | 'move_out';
   preferred_date: string;
   preferred_time: string;
   repeat: 'none' | 'weekly' | 'biweekly' | 'monthly';
@@ -61,13 +102,20 @@ interface Row {
 }
 
 const COLUMNS =
-  'id, client_name, client_phone, address, preferred_date, preferred_time, repeat, notes, lang, status, created_at';
+  'id, client_name, client_phone, address, unit, city, zip, contact_method, contact_email, cleaning_type, move_type, preferred_date, preferred_time, repeat, notes, lang, status, created_at';
 
 const toDto = (r: Row) => ({
   id: r.id,
   clientName: r.client_name,
   clientPhone: r.client_phone,
   address: r.address,
+  unit: r.unit,
+  city: r.city,
+  zip: r.zip,
+  contactMethod: r.contact_method,
+  contactEmail: r.contact_email,
+  cleaningType: r.cleaning_type,
+  moveType: r.move_type,
   preferredDate: r.preferred_date,
   preferredTime: r.preferred_time,
   repeat: r.repeat,
@@ -100,12 +148,21 @@ export async function submitRequest(pool: pg.Pool, input: PublicRequestInput): P
 
   await pool.query(
     `INSERT INTO booking_requests
-       (client_name, client_phone, address, preferred_date, preferred_time, repeat, notes, lang)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+       (client_name, client_phone, address, unit, city, zip, contact_method, contact_email,
+        cleaning_type, move_type, preferred_date, preferred_time, repeat, notes, lang)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
     [
       input.clientName,
       input.clientPhone,
       input.address,
+      input.unit,
+      input.city,
+      input.zip,
+      input.contactMethod,
+      // An email the client typed but did not choose to be contacted by is not kept.
+      input.contactMethod === 'email' ? input.contactEmail : null,
+      input.cleaningType,
+      input.moveType,
       input.preferredDate,
       input.preferredTime,
       input.repeat,

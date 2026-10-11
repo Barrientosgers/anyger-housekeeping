@@ -1,12 +1,23 @@
 import { type FormEvent, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { type BookingInput, api } from '../api';
+import { type BookingInput, type MoveType, api } from '../api';
 import { LanguageToggle } from '../components';
 import { todayPacific } from '../dates';
 import { errorMessage } from '../errors';
 import { hasSavedLanguage } from '../i18n';
+import { isValidPhone } from '../requestDetails';
 
-const FREQS = ['none', 'weekly', 'biweekly', 'monthly'] as const;
+/** One "how often" list for the client; the form splits it into repeat + move type. */
+const FREQUENCIES = [
+  { value: 'once', repeat: 'none', moveType: 'none' },
+  { value: 'weekly', repeat: 'weekly', moveType: 'none' },
+  { value: 'biweekly', repeat: 'biweekly', moveType: 'none' },
+  { value: 'monthly', repeat: 'monthly', moveType: 'none' },
+  { value: 'move_in', repeat: 'none', moveType: 'move_in' },
+  { value: 'move_out', repeat: 'none', moveType: 'move_out' },
+] as const;
+const CONTACT_METHODS = ['call', 'text', 'email'] as const;
+const CLEANING_TYPES = ['apartment', 'house', 'office'] as const;
 
 /** The public form: no login. Clients who browse in English see English unless they chose otherwise. */
 export default function BookingPage() {
@@ -14,10 +25,17 @@ export default function BookingPage() {
   const [form, setForm] = useState<Omit<BookingInput, 'lang'>>({
     clientName: '',
     clientPhone: '',
+    contactMethod: 'call',
+    contactEmail: '',
+    cleaningType: 'house',
     address: '',
+    unit: '',
+    city: '',
+    zip: '',
     preferredDate: '',
     preferredTime: '09:00',
     repeat: 'none',
+    moveType: 'none',
     notes: '',
     website: '',
   });
@@ -36,10 +54,16 @@ export default function BookingPage() {
 
   async function submit(e: FormEvent) {
     e.preventDefault();
+    if (!isValidPhone(form.clientPhone)) return setError(t('book.phoneInvalid'));
+    if (!/^\d{5}(-\d{4})?$/.test(form.zip.trim())) return setError(t('book.zipInvalid'));
     setBusy(true);
     setError(null);
     try {
-      await api.submitBooking({ ...form, lang: i18n.language === 'en' ? 'en' : 'es' });
+      await api.submitBooking({
+        ...form,
+        contactEmail: form.contactMethod === 'email' ? form.contactEmail : '',
+        lang: i18n.language === 'en' ? 'en' : 'es',
+      });
       setDone(true);
     } catch (err) {
       setError(errorMessage(t, err));
@@ -83,11 +107,49 @@ export default function BookingPage() {
             type="tel"
             value={form.clientPhone}
             onChange={(e) => set('clientPhone', e.target.value)}
-            minLength={7}
             maxLength={30}
             autoComplete="tel"
             required
           />
+        </label>
+        <label>
+          {t('book.contactMethod')}
+          <select
+            value={form.contactMethod}
+            onChange={(e) => set('contactMethod', e.target.value as BookingInput['contactMethod'])}
+          >
+            {CONTACT_METHODS.map((m) => (
+              <option key={m} value={m}>
+                {t(`book.contact_${m}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+        {form.contactMethod === 'email' && (
+          <label>
+            {t('book.email')}
+            <input
+              type="email"
+              value={form.contactEmail}
+              onChange={(e) => set('contactEmail', e.target.value)}
+              maxLength={254}
+              autoComplete="email"
+              required
+            />
+          </label>
+        )}
+        <label>
+          {t('book.cleaningType')}
+          <select
+            value={form.cleaningType}
+            onChange={(e) => set('cleaningType', e.target.value as BookingInput['cleaningType'])}
+          >
+            {CLEANING_TYPES.map((c) => (
+              <option key={c} value={c}>
+                {t(`book.type_${c}`)}
+              </option>
+            ))}
+          </select>
         </label>
         <label>
           {t('book.address')}
@@ -95,7 +157,36 @@ export default function BookingPage() {
             value={form.address}
             onChange={(e) => set('address', e.target.value)}
             maxLength={250}
-            autoComplete="street-address"
+            autoComplete="address-line1"
+          />
+        </label>
+        <label>
+          {t('book.unit')}
+          <input
+            value={form.unit}
+            onChange={(e) => set('unit', e.target.value)}
+            maxLength={40}
+            autoComplete="address-line2"
+          />
+        </label>
+        <label>
+          {t('book.city')}
+          <input
+            value={form.city}
+            onChange={(e) => set('city', e.target.value)}
+            maxLength={80}
+            autoComplete="address-level2"
+            required
+          />
+        </label>
+        <label>
+          {t('book.zip')}
+          <input
+            value={form.zip}
+            onChange={(e) => set('zip', e.target.value)}
+            inputMode="numeric"
+            maxLength={10}
+            autoComplete="postal-code"
             required
           />
         </label>
@@ -121,14 +212,18 @@ export default function BookingPage() {
         <label>
           {t('book.repeat')}
           <select
-            value={form.repeat}
-            onChange={(e) => set('repeat', e.target.value as BookingInput['repeat'])}
+            value={
+              FREQUENCIES.find((f) => f.repeat === form.repeat && f.moveType === form.moveType)
+                ?.value
+            }
+            onChange={(e) => {
+              const f = FREQUENCIES.find((x) => x.value === e.target.value)!;
+              setForm((prev) => ({ ...prev, repeat: f.repeat, moveType: f.moveType as MoveType }));
+            }}
           >
-            {FREQS.map((f) => (
-              <option key={f} value={f}>
-                {f === 'none'
-                  ? t('book.once')
-                  : t(`form.repeat_${f === 'monthly' ? 'monthlyPlain' : f}`)}
+            {FREQUENCIES.map((f) => (
+              <option key={f.value} value={f.value}>
+                {t(`book.freq_${f.value}`)}
               </option>
             ))}
           </select>

@@ -18,7 +18,10 @@ const today = () => utcToLocal(new Date()).date;
 const form = (over: object = {}) => ({
   clientName: 'Laura Gómez',
   clientPhone: '(555) 010-0199',
+  cleaningType: 'house',
   address: '77 Sample Rd',
+  city: 'Springfield',
+  zip: '90210',
   preferredDate: addDays(today(), 14),
   preferredTime: '09:00',
   repeat: 'none',
@@ -105,6 +108,64 @@ describe('public booking form', () => {
     await submit(form({ clientPhone: '12345' })).expect(400);
   });
 
+  it('normalizes phone numbers and rejects ones that cannot be real', async () => {
+    await submit(form({ clientPhone: '1-555-010-0199' })).expect(201);
+    expect((await rows())[0].client_phone).toBe('(555) 010-0199');
+    for (const bad of ['555-0199', '(055) 010-0199', '(155) 010-0199', '555 010 01999']) {
+      const res = await submit(form({ clientPhone: bad })).expect(400);
+      expect(res.body.error.fields).toContain('clientPhone');
+    }
+  });
+
+  it('requires city and a valid ZIP, but not the street or unit', async () => {
+    await submit(form({ address: '', unit: '' })).expect(201);
+    const [row] = await rows();
+    expect(row).toMatchObject({ address: null, unit: null, city: 'Springfield', zip: '90210' });
+    await submit(form({ zip: '9021' })).expect(400);
+    await submit(form({ zip: 'abcde' })).expect(400);
+    await submit(form({ zip: '90210-1234' })).expect(201);
+    const res = await submit(form({ city: '  ', zip: '' })).expect(400);
+    expect(res.body.error.fields).toEqual(expect.arrayContaining(['city', 'zip']));
+  });
+
+  it('stores the cleaning type and how often, including move-in and move-out', async () => {
+    await submit(form({ cleaningType: 'office', repeat: 'biweekly' })).expect(201);
+    await submit(form({ cleaningType: 'apartment', moveType: 'move_out' })).expect(201);
+    const stored = await rows();
+    expect(stored[0]).toMatchObject({
+      cleaning_type: 'office',
+      repeat: 'biweekly',
+      move_type: 'none',
+    });
+    expect(stored[1]).toMatchObject({
+      cleaning_type: 'apartment',
+      repeat: 'none',
+      move_type: 'move_out',
+    });
+    await submit(form({ cleaningType: 'castle' })).expect(400);
+    await submit(form({ cleaningType: undefined })).expect(400);
+    const both = await submit(form({ moveType: 'move_in', repeat: 'weekly' })).expect(400);
+    expect(both.body.error.fields).toContain('moveType');
+  });
+
+  it('keeps the contact preference, and needs an email only when email is chosen', async () => {
+    await submit(form()).expect(201); // default: call
+    await submit(form({ contactMethod: 'text' })).expect(201);
+    const noEmail = await submit(form({ contactMethod: 'email' })).expect(400);
+    expect(noEmail.body.error.fields).toContain('contactEmail');
+    await submit(form({ contactMethod: 'email', contactEmail: 'not-an-email' })).expect(400);
+    await submit(form({ contactMethod: 'email', contactEmail: 'laura@example.com' })).expect(201);
+    // An email typed but not chosen as the way to reach them is not kept.
+    await submit(form({ contactMethod: 'call', contactEmail: 'extra@example.com' })).expect(201);
+    const stored = await rows();
+    expect(stored.map((r) => [r.contact_method, r.contact_email])).toEqual([
+      ['call', null],
+      ['text', null],
+      ['email', 'laura@example.com'],
+      ['call', null],
+    ]);
+  });
+
   it('keeps markup as plain text', async () => {
     await submit(form({ notes: '<img src=x onerror=alert(1)>' })).expect(201);
     expect((await rows())[0].notes).toBe('<img src=x onerror=alert(1)>');
@@ -147,6 +208,30 @@ describe('owners: reviewing requests', () => {
     await supertest(ctx.app).get(`/api/requests/${id}`).expect(401);
     await supertest(ctx.app).post(`/api/requests/${id}/accept`).set(CSRF).send({}).expect(401);
     await supertest(ctx.app).post(`/api/requests/${id}/decline`).set(CSRF).expect(401);
+  });
+
+  it('shows the owners everything the client chose, including the new details', async () => {
+    await submit(
+      form({
+        contactMethod: 'email',
+        contactEmail: 'laura@example.com',
+        cleaningType: 'office',
+        unit: 'Suite 4',
+      }),
+    );
+    const id = await idOf();
+    const { request } = (await agent.get(`/api/requests/${id}`).expect(200)).body;
+    expect(request).toMatchObject({
+      contactMethod: 'email',
+      contactEmail: 'laura@example.com',
+      cleaningType: 'office',
+      moveType: 'none',
+      address: '77 Sample Rd',
+      unit: 'Suite 4',
+      city: 'Springfield',
+      zip: '90210',
+      clientPhone: '(555) 010-0199',
+    });
   });
 
   it('lists pending requests oldest first and counts them', async () => {

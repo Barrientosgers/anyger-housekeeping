@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { type BookingRequest, api } from '../api';
 import { formatLongDate, formatTime } from '../dates';
 import { errorMessage } from '../errors';
+import { cleaningTypeLabel, formatAddress } from '../requestDetails';
 
 export default function RequestsPage() {
   const { t, i18n } = useTranslation();
@@ -41,7 +42,7 @@ export default function RequestsPage() {
           <span>
             {formatLongDate(r.preferredDate, lang)}, {formatTime(r.preferredTime, lang)}
           </span>
-          <small>{r.address}</small>
+          <small>{[cleaningTypeLabel(t, r), formatAddress(r)].filter(Boolean).join(' · ')}</small>
         </Link>
       ))}
       <button className="btn" onClick={() => navigate('/')}>
