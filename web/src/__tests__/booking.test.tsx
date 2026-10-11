@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -16,6 +16,13 @@ const request = {
   clientName: 'Laura Gómez',
   clientPhone: '(555) 010-0199',
   address: '77 Sample Rd',
+  unit: 'Apt 4',
+  city: 'Springfield',
+  zip: '90210',
+  contactMethod: 'email',
+  contactEmail: 'laura@example.com',
+  cleaningType: 'office',
+  moveType: 'none',
   preferredDate: '2026-10-20',
   preferredTime: '09:30',
   repeat: 'weekly',
@@ -59,8 +66,9 @@ afterEach(async () => {
 
 const fillForm = async () => {
   await userEvent.type(screen.getByLabelText('Su nombre'), 'Laura Gómez');
-  await userEvent.type(screen.getByLabelText('Su teléfono'), '555 010 0199');
-  await userEvent.type(screen.getByLabelText('Dirección de la limpieza'), '77 Sample Rd');
+  await userEvent.type(screen.getByLabelText('Su teléfono (10 dígitos)'), '555 010 0199');
+  await userEvent.type(screen.getByLabelText('Ciudad'), 'Springfield');
+  await userEvent.type(screen.getByLabelText('Código postal (ZIP)'), '90210');
   await userEvent.type(screen.getByLabelText('Fecha que prefiere'), '2026-10-20');
 };
 
@@ -104,9 +112,81 @@ describe('public booking page', () => {
       clientName: 'Laura Gómez',
       preferredDate: '2026-10-20',
       repeat: 'weekly',
+      moveType: 'none',
+      contactMethod: 'call',
+      cleaningType: 'house',
+      city: 'Springfield',
+      zip: '90210',
+      address: '',
       lang: 'es',
       website: '',
     });
+  });
+
+  it('asks for an email only when email is the preferred way to be contacted', async () => {
+    renderBook();
+    expect(screen.queryByLabelText('Su correo electrónico')).not.toBeInTheDocument();
+    await fillForm();
+    await userEvent.selectOptions(
+      screen.getByLabelText('¿Cómo prefiere que le contactemos?'),
+      'email',
+    );
+    await userEvent.type(screen.getByLabelText('Su correo electrónico'), 'laura@example.com');
+    await userEvent.selectOptions(screen.getByLabelText('¿Qué quiere limpiar?'), 'office');
+    await userEvent.selectOptions(screen.getByLabelText('¿Con qué frecuencia?'), 'move_out');
+    await userEvent.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+    expect(await screen.findByRole('heading', { name: '¡Gracias!' })).toBeInTheDocument();
+    expect(JSON.parse(calls('POST', '/api/public/requests')[0]![1].body)).toMatchObject({
+      contactMethod: 'email',
+      contactEmail: 'laura@example.com',
+      cleaningType: 'office',
+      repeat: 'none',
+      moveType: 'move_out',
+    });
+  });
+
+  it('does not send an email address that was typed and then not chosen', async () => {
+    renderBook();
+    await fillForm();
+    const how = screen.getByLabelText('¿Cómo prefiere que le contactemos?');
+    await userEvent.selectOptions(how, 'email');
+    await userEvent.type(screen.getByLabelText('Su correo electrónico'), 'laura@example.com');
+    await userEvent.selectOptions(how, 'text');
+    await userEvent.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+    await screen.findByRole('heading', { name: '¡Gracias!' });
+    const body = JSON.parse(calls('POST', '/api/public/requests')[0]![1].body);
+    expect(body).toMatchObject({ contactMethod: 'text', contactEmail: '' });
+  });
+
+  it('offers move-in and move-out as ways to book, in plain words', async () => {
+    renderBook();
+    const options = within(screen.getByLabelText('¿Con qué frecuencia?'))
+      .getAllByRole('option')
+      .map((o) => o.textContent);
+    expect(options).toEqual([
+      'Una sola vez',
+      'Cada semana',
+      'Cada 2 semanas',
+      'Cada mes',
+      'Limpieza de mudanza (entrada)',
+      'Limpieza de mudanza (salida)',
+    ]);
+  });
+
+  it('catches a bad phone number or ZIP before sending anything', async () => {
+    renderBook();
+    await fillForm();
+    await userEvent.clear(screen.getByLabelText('Su teléfono (10 dígitos)'));
+    await userEvent.type(screen.getByLabelText('Su teléfono (10 dígitos)'), '555-0199');
+    await userEvent.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('teléfono de 10 dígitos');
+    await userEvent.clear(screen.getByLabelText('Su teléfono (10 dígitos)'));
+    await userEvent.type(screen.getByLabelText('Su teléfono (10 dígitos)'), '(555) 010-0199');
+    await userEvent.clear(screen.getByLabelText('Código postal (ZIP)'));
+    await userEvent.type(screen.getByLabelText('Código postal (ZIP)'), '9021');
+    await userEvent.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('código postal de 5 dígitos');
+    expect(calls('POST', '/api/public/requests')).toHaveLength(0);
   });
 
   it('a client who switches to English gets English and the request is marked English', async () => {
@@ -114,8 +194,9 @@ describe('public booking page', () => {
     await userEvent.click(screen.getByRole('button', { name: 'English' }));
     expect(screen.getByRole('heading', { name: 'Request a cleaning' })).toBeInTheDocument();
     await userEvent.type(screen.getByLabelText('Your name'), 'Laura');
-    await userEvent.type(screen.getByLabelText('Your phone number'), '5550100199');
-    await userEvent.type(screen.getByLabelText('Address for the cleaning'), '77 Sample Rd');
+    await userEvent.type(screen.getByLabelText('Your phone number (10 digits)'), '5550100199');
+    await userEvent.type(screen.getByLabelText('City'), 'Springfield');
+    await userEvent.type(screen.getByLabelText('ZIP code'), '90210');
     await userEvent.type(screen.getByLabelText('Preferred date'), '2026-10-20');
     await userEvent.click(screen.getByRole('button', { name: 'Send request' }));
     expect(await screen.findByRole('heading', { name: 'Thank you!' })).toBeInTheDocument();
@@ -191,7 +272,8 @@ describe('owners: requests', () => {
     renderOwner('/requests');
     const link = await screen.findByRole('link', { name: /Laura Gómez/ });
     expect(link).toHaveAttribute('href', `/requests/${REQ_ID}`);
-    expect(link).toHaveTextContent('77 Sample Rd');
+    expect(link).toHaveTextContent('Oficina');
+    expect(link).toHaveTextContent('77 Sample Rd, Apt 4, Springfield 90210');
     expect(link).toHaveTextContent(/9:30\sa\.\s?m\./);
   });
 
@@ -208,6 +290,13 @@ describe('owners: requests', () => {
     expect(document.querySelector('dd b')).toBeNull();
     expect(screen.getByRole('link', { name: 'Llamar' })).toHaveAttribute('href', 'tel:5550100199');
     expect(screen.getByText(/Cada semana/)).toBeInTheDocument();
+    expect(screen.getByText('Oficina')).toBeInTheDocument();
+    expect(screen.getByText('77 Sample Rd, Apt 4, Springfield 90210')).toBeInTheDocument();
+    expect(screen.getByText('Correo electrónico')).toBeInTheDocument(); // how they asked to be reached
+    expect(screen.getByRole('link', { name: 'laura@example.com' })).toHaveAttribute(
+      'href',
+      'mailto:laura@example.com',
+    );
     expect(screen.getByRole('link', { name: 'Aceptar' })).toHaveAttribute(
       'href',
       `/requests/${REQ_ID}/accept`,
@@ -232,6 +321,10 @@ describe('owners: requests', () => {
     expect(screen.getByLabelText('Nombre del cliente')).toHaveValue('Laura Gómez');
     expect(screen.getByLabelText('Fecha')).toHaveValue('2026-10-20');
     expect(screen.getByLabelText('Hora')).toHaveValue('09:30');
+    expect(screen.getByLabelText('Dirección')).toHaveValue(
+      '77 Sample Rd, Apt 4, Springfield 90210',
+    );
+    expect(screen.getByLabelText('Notas (opcional)')).toHaveValue('Oficina. <b>Dos gatos</b>');
     expect(screen.getByLabelText('¿Se repite?')).toHaveValue('weekly');
     await userEvent.clear(screen.getByLabelText('Hora'));
     await userEvent.type(screen.getByLabelText('Hora'), '11:00');

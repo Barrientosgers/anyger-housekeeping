@@ -53,10 +53,17 @@ erDiagram
     uuid id PK
     text client_name
     text client_phone
+    text contact_method
+    text contact_email
+    text cleaning_type
     text address
+    text unit
+    text city
+    text zip
     date preferred_date
     text preferred_time
     text repeat
+    text move_type
     text status
     uuid appointment_id FK
     uuid series_id FK
@@ -105,7 +112,7 @@ erDiagram
   }
 ```
 
-Phase 2 added `series` and two columns on `appointments` (`series_id`, `original_date`; see Recurrence below). Phase 3 added `booking_requests`. Planned: `translations` (Phase 5).
+Phase 2 added `series` and two columns on `appointments` (`series_id`, `original_date`; see Recurrence below). Phase 3 added `booking_requests` (later extended with contact preference, cleaning type, move-in/out, and a structured address). Planned: `translations` (Phase 5).
 
 ## Key decisions and tradeoffs
 
