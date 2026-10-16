@@ -14,8 +14,8 @@ const NAMES: Record<Lang, string> = { es: 'spanish', en: 'english' };
  * and, once used up, requests FAIL rather than bill, which matches this project's never-pay rule.
  * Cloudflare states it does not train on or store customer content by default.
  *
- * Not yet verified against a live account: the language fields (see CLOUDFLARE_LANG_FORMAT) and the
- * exact response shape, which is parsed defensively.
+ * Verified against a live account on 2026-10-16 with the default language codes (en/es); the
+ * response is still parsed defensively. CLOUDFLARE_LANG_FORMAT=name remains as a fallback.
  */
 export class CloudflareTranslator implements Translator {
   readonly name = 'cloudflare';
