@@ -53,7 +53,10 @@ const today = () => utcToLocal(new Date()).date;
 const request = (over: object = {}) => ({
   clientName: 'UniqueClientName',
   clientPhone: '(555) 010-0777',
+  cleaningType: 'house',
   address: '999 Private Address Ln',
+  city: 'Springfield',
+  zip: '90210',
   preferredDate: addDays(today(), 14),
   preferredTime: '09:00',
   repeat: 'none',

@@ -6,6 +6,7 @@ import { formatFullDate, formatTime } from '../dates';
 import { errorMessage } from '../errors';
 import { TranslatedNote } from '../components';
 import { repeatLabel } from '../repeat';
+import { cleaningTypeLabel, formatAddress, moveLabel } from '../requestDetails';
 
 export default function RequestDetail() {
   const { t, i18n } = useTranslation();
@@ -76,18 +77,35 @@ export default function RequestDetail() {
         <dd>
           {formatFullDate(req.preferredDate, lang)}, {formatTime(req.preferredTime, lang)}
           <br />
-          {req.repeat === 'none'
-            ? t('requests.once')
-            : repeatLabel(t, req.repeat, req.preferredDate, lang)}
+          {moveLabel(t, req) ||
+            (req.repeat === 'none'
+              ? t('requests.once')
+              : repeatLabel(t, req.repeat, req.preferredDate, lang))}
         </dd>
+        {req.cleaningType && (
+          <>
+            <dt>{t('requests.cleaningType')}</dt>
+            <dd>{cleaningTypeLabel(t, req)}</dd>
+          </>
+        )}
         <dt>{t('requests.where')}</dt>
-        <dd>{req.address}</dd>
-        <dt>{t('requests.phone')}</dt>
+        <dd>{formatAddress(req)}</dd>
+        <dt>{t('requests.contact')}</dt>
         <dd>
+          <strong>{t(`requests.contact_${req.contactMethod}`)}</strong>
+          <br />
           {req.clientPhone}{' '}
           <a className="link" href={`tel:${req.clientPhone.replace(/[^0-9+]/g, '')}`}>
             {t('detail.call')}
           </a>
+          {req.contactEmail && (
+            <>
+              <br />
+              <a className="link" href={`mailto:${req.contactEmail}`}>
+                {req.contactEmail}
+              </a>
+            </>
+          )}
         </dd>
         {req.notes && (
           <>

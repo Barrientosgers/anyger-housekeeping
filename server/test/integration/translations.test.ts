@@ -33,7 +33,10 @@ const makeRequest = async (notes: string | null, lang = 'en') => {
     .send({
       clientName: 'Laura',
       clientPhone: '5550100199',
+      cleaningType: 'house',
       address: '77 Sample Rd',
+      city: 'Springfield',
+      zip: '90210',
       preferredDate: addDays(today(), 14),
       preferredTime: '09:00',
       repeat: 'none',

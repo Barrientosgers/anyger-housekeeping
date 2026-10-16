@@ -29,11 +29,22 @@ export interface AppointmentInput {
   repeatUntil: string;
 }
 
+export type ContactMethod = 'call' | 'text' | 'email';
+export type CleaningType = 'apartment' | 'house' | 'office';
+export type MoveType = 'none' | 'move_in' | 'move_out';
+
 export interface BookingRequest {
   id: string;
   clientName: string;
   clientPhone: string;
-  address: string;
+  address: string | null;
+  unit: string | null;
+  city: string | null;
+  zip: string | null;
+  contactMethod: ContactMethod;
+  contactEmail: string | null;
+  cleaningType: CleaningType | null;
+  moveType: MoveType;
   preferredDate: string;
   preferredTime: string;
   repeat: 'none' | Freq;
@@ -46,10 +57,17 @@ export interface BookingRequest {
 export interface BookingInput {
   clientName: string;
   clientPhone: string;
+  contactMethod: ContactMethod;
+  contactEmail: string;
+  cleaningType: CleaningType;
   address: string;
+  unit: string;
+  city: string;
+  zip: string;
   preferredDate: string;
   preferredTime: string;
   repeat: 'none' | Freq;
+  moveType: MoveType;
   notes: string;
   lang: string;
   website: string; // honeypot: left empty by people

@@ -5,6 +5,7 @@ import { type Appointment, type AppointmentInput, type Freq, type Scope, api } f
 import { formatFullDate, formatTime, todayPacific } from '../dates';
 import { errorMessage } from '../errors';
 import { repeatLabel } from '../repeat';
+import { cleaningTypeLabel, formatAddress, moveLabel } from '../requestDetails';
 
 const DURATIONS: [number, string][] = [
   [60, 'hours_1'],
@@ -55,11 +56,12 @@ export default function AppointmentForm({ mode = 'normal' }: { mode?: 'normal' |
           setForm({
             clientName: r.clientName,
             clientPhone: r.clientPhone,
-            address: r.address,
+            address: formatAddress(r),
             date: r.preferredDate,
             time: r.preferredTime,
             durationMin: 120,
-            notes: r.notes ?? '',
+            // The kind of place and any move-in/out clean would otherwise be lost on the calendar.
+            notes: [cleaningTypeLabel(t, r), moveLabel(t, r), r.notes].filter(Boolean).join('. '),
             repeat: r.repeat,
             repeatUntil: '',
           }),
