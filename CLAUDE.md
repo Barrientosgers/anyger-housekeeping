@@ -42,13 +42,13 @@ Bilingual (Spanish default / English) scheduling app for a small family house-cl
 2. Recurrence + English toggle (done, live)
 3. Public booking requests (done, live)
 4. SMS via httpSMS (an Android phone sends; texts are generic, no PII) (merged; off until set up)
-5. Translation of notes: Cloudflare Workers AI (free) is the real provider; the Claude adapter is built but OFF because the Claude API is not free (built; needs a free Cloudflare token)
+5. Translation of notes: Cloudflare Workers AI (free) is the real provider; the Claude adapter is built but OFF because the Claude API is not free (done, live since 2026-10-16: verified end to end with a test note)
 6. Public-repo hardening, metrics write-up (done; repo published 2026-10-06)
 
 ## Status (as of 2026-10-06) and how to resume
 
 - **All 6 phases are built, tested, merged, and live.** `main` is the only branch. The repo is PUBLIC with an MIT license; `main` is protected (required checks `test` and `secret-scan`; no force-push or deletion). Hosting is free-tier (Render + Neon).
-- **Off until the owner sets them up (optional):** texts to the owner (`docs/sms-setup.md`) and note translation (`docs/translation-setup.md`).
+- **Off until the owner sets them up (optional):** texts to the owner (`docs/sms-setup.md`). Note translation is ON in production (Cloudflare Workers AI, set up 2026-10-16). The public booking form gained contact preference, cleaning type, move-in/out, and city/ZIP validation (PR #18).
 - **Waiting on real use:** the owners are starting to use the app. After 2-4 weeks, run `npm run usage -w server` (steps in `docs/metrics.md`), subtract the **baseline recorded there (2026-10-06)**, and turn the difference into final résumé bullets. Never present development or testing counts as customer activity.
 - **Decisions already made:** keep the author email in history as is; describe the project as "a small family business app" (no family details in docs); the repo was published as is (author email, older wording, and the live address remain in old commits, accepted). If the address must change later, move the app to a custom domain and retire the old one.
 - **How we work:** one step at a time with exact commands; never ask for secrets in chat (use `read -rs` hidden prompts); open a pull request for every change and merge only when asked; report only measured numbers.

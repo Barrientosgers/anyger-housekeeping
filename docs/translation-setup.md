@@ -20,7 +20,7 @@ Only the **text of one note** is sent to Cloudflare, and only when it is in the 
 
 ## Setup (about 15 minutes)
 
-I have read Cloudflare's getting-started page, but I have **not** used a live Cloudflare account, so check the wording against [their guide](https://developers.cloudflare.com/workers-ai/get-started/rest-api/) if a screen looks different.
+**Verified live on 2026-10-16:** the terminal test in step 3 succeeded, and an English test note submitted through `/book` showed its Spanish translation on the owners' side, using the default language codes (`CLOUDFLARE_LANG_FORMAT` was not needed). Cloudflare's screens may change, so check the wording against [their guide](https://developers.cloudflare.com/workers-ai/get-started/rest-api/) if one looks different.
 
 1. Create a **free account** at cloudflare.com. No payment method is needed to use the free allowance.
 2. In the Cloudflare dashboard open **Workers AI**, choose **Use REST API**, and **Create a Workers AI API Token**. Copy the token and your **Account ID**. (A custom token needs the permissions _Workers AI - Read_ and _Workers AI - Edit_.) Treat the token like a password.
