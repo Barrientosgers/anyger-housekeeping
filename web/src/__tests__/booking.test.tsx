@@ -9,7 +9,10 @@ import AppointmentForm from '../pages/AppointmentForm';
 import CalendarPage from '../pages/CalendarPage';
 import RequestDetail from '../pages/RequestDetail';
 import RequestsPage from '../pages/RequestsPage';
+import { addDays, todayPacific } from '../dates';
 
+// The form refuses past dates, so dates typed into it must stay in the future whenever tests run.
+const FUTURE_DATE = addDays(todayPacific(), 30);
 const REQ_ID = '44444444-4444-4444-8444-444444444444';
 const request = {
   id: REQ_ID,
@@ -69,7 +72,7 @@ const fillForm = async () => {
   await userEvent.type(screen.getByLabelText('Su teléfono (10 dígitos)'), '555 010 0199');
   await userEvent.type(screen.getByLabelText('Ciudad'), 'Springfield');
   await userEvent.type(screen.getByLabelText('Código postal (ZIP)'), '90210');
-  await userEvent.type(screen.getByLabelText('Fecha que prefiere'), '2026-10-20');
+  await userEvent.type(screen.getByLabelText('Fecha que prefiere'), FUTURE_DATE);
 };
 
 describe('public booking page', () => {
@@ -110,7 +113,7 @@ describe('public booking page', () => {
     const [, init] = calls('POST', '/api/public/requests')[0]!;
     expect(JSON.parse(init.body)).toMatchObject({
       clientName: 'Laura Gómez',
-      preferredDate: '2026-10-20',
+      preferredDate: FUTURE_DATE,
       repeat: 'weekly',
       moveType: 'none',
       contactMethod: 'call',
@@ -197,7 +200,7 @@ describe('public booking page', () => {
     await userEvent.type(screen.getByLabelText('Your phone number (10 digits)'), '5550100199');
     await userEvent.type(screen.getByLabelText('City'), 'Springfield');
     await userEvent.type(screen.getByLabelText('ZIP code'), '90210');
-    await userEvent.type(screen.getByLabelText('Preferred date'), '2026-10-20');
+    await userEvent.type(screen.getByLabelText('Preferred date'), FUTURE_DATE);
     await userEvent.click(screen.getByRole('button', { name: 'Send request' }));
     expect(await screen.findByRole('heading', { name: 'Thank you!' })).toBeInTheDocument();
     expect(JSON.parse(calls('POST', '/api/public/requests')[0]![1].body).lang).toBe('en');
