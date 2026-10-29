@@ -30,6 +30,13 @@ services:
         sync: false
       - key: HTTPSMS_FROM
         sync: false
+      # Email alert for new booking requests. Leave EMAIL_PROVIDER unset to keep it off.
+      - key: EMAIL_PROVIDER
+        sync: false
+      - key: NOTIFY_EMAIL
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
       # Translation of client notes (Phase 5). Leave TRANSLATE_PROVIDER unset to keep it off.
       - key: TRANSLATE_PROVIDER
         sync: false

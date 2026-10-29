@@ -25,6 +25,16 @@ export interface Notifier {
 
 export const noopNotifier: Notifier = { notify: () => undefined, flush: async () => undefined };
 
+/** Fan one event out to several notifiers (texts, email). Each one decides what it cares about. */
+export function combineNotifiers(...notifiers: Notifier[]): Notifier {
+  return {
+    notify: (event) => notifiers.forEach((n) => n.notify(event)),
+    flush: async () => {
+      await Promise.all(notifiers.map((n) => n.flush()));
+    },
+  };
+}
+
 interface Options {
   provider: SmsProvider | null;
   to: string | undefined;

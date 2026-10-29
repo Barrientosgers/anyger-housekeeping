@@ -81,6 +81,19 @@ Texts to the owner add an outbound channel and a new way for a stranger to cause
 | Logs                                      | One line per text: event, provider, outcome. Never the number or message body (verified by running the built server: 0 matches).                                                                                                           |
 | Lock-in                                   | `SmsProvider` interface with httpSMS, Twilio (mocked tests only), and fake adapters.                                                                                                                                                       |
 
+## Email alert
+
+An email to the owner for new booking requests is a second outbound channel the public form can trigger, so it follows the same rules as texts. Details in [docs/email-setup.md](docs/email-setup.md).
+
+| Concern                                   | Control                                                                                                                                                                                |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Personal data leaving the server          | The email is a fixed, generic two-language sentence plus the app link. A test asserts none of a client's name, address, phone, email, or note ever appears in it.                      |
+| Public form used to flood or run up costs | Spam and invalid submissions send nothing; the form is rate limited; a **10-minute cooldown** turns bursts into one email; a **hard monthly cap** (100) keeps it inside the free plan. |
+| Secrets                                   | The API key and the destination address are environment variables only, never logged. Misconfiguration **fails closed at startup** and names the setting, never its value. Tested.     |
+| Provider outage or slowness               | Fire-and-forget with a 5 s timeout. A failure never fails or delays the client's request; it is counted (`email_failed`) and logged without personal data.                             |
+| Header injection                          | The subject and body are constants and the recipient comes from configuration; no client input reaches any email field.                                                                |
+| Lock-in                                   | `EmailProvider` interface with Resend and fake adapters.                                                                                                                               |
+
 ## Translation of notes
 
 Translating means a client's free-text note leaves our server for a third party, so the design limits what, when, and how much:
