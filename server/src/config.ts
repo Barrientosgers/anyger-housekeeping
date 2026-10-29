@@ -31,6 +31,14 @@ const schema = z
     TWILIO_AUTH_TOKEN: optional(z.string().min(1)),
     TWILIO_FROM_NUMBER: optional(e164),
 
+    // Email alert to the owner for new booking requests. "none" turns it off (the default).
+    EMAIL_PROVIDER: z.enum(['none', 'fake', 'resend']).default('none'),
+    NOTIFY_EMAIL: optional(z.email()),
+    EMAIL_FROM: optional(z.string().min(3).max(200)), // defaults to Resend's shared test sender
+    EMAIL_MONTHLY_LIMIT: z.coerce.number().int().min(1).default(100),
+    EMAIL_COOLDOWN_MINUTES: z.coerce.number().int().min(0).default(10),
+    RESEND_API_KEY: optional(z.string().min(1)),
+
     // Translation of client notes (Phase 5). "none" switches it off; the app works without it.
     TRANSLATE_PROVIDER: z.enum(['none', 'fake', 'cloudflare', 'claude']).default('none'),
     TRANSLATE_DAILY_LIMIT: z.coerce.number().int().min(1).default(200),
@@ -51,6 +59,8 @@ const schema = z
     if (v.TRANSLATE_PROVIDER === 'cloudflare')
       need(['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_TOKEN']);
     if (v.TRANSLATE_PROVIDER === 'claude') need(['ANTHROPIC_API_KEY']);
+    if (v.EMAIL_PROVIDER !== 'none') need(['NOTIFY_EMAIL']);
+    if (v.EMAIL_PROVIDER === 'resend') need(['RESEND_API_KEY']);
     if (v.SMS_PROVIDER === 'none') return;
     need(['NOTIFY_PHONE_NUMBER']);
     if (v.SMS_PROVIDER === 'httpsms') need(['HTTPSMS_API_KEY', 'HTTPSMS_FROM']);

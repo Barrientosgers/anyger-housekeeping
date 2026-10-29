@@ -111,3 +111,37 @@ describe('translation configuration', () => {
     expect(msg).toContain('CLOUDFLARE_LANG_FORMAT');
   });
 });
+
+describe('email alert configuration', () => {
+  it('email alerts are off by default and need no extra settings', () => {
+    expect(loadConfig(base as NodeJS.ProcessEnv).EMAIL_PROVIDER).toBe('none');
+  });
+
+  it('a provider with no destination address is rejected at startup', () => {
+    expect(err({ EMAIL_PROVIDER: 'fake' })).toContain('NOTIFY_EMAIL');
+  });
+
+  it('resend needs its key, and a typo cannot quietly turn alerts off', () => {
+    const msg = err({ EMAIL_PROVIDER: 'resend', NOTIFY_EMAIL: 'me@example.com' })!;
+    expect(msg).toContain('RESEND_API_KEY');
+    expect(err({ EMAIL_PROVIDER: 'resned' })).toContain('EMAIL_PROVIDER');
+  });
+
+  it('rejects a malformed destination, and never prints values', () => {
+    const msg = err({ EMAIL_PROVIDER: 'fake', NOTIFY_EMAIL: 'not-an-email' })!;
+    expect(msg).toContain('NOTIFY_EMAIL');
+    expect(msg).not.toContain('not-an-email');
+  });
+
+  it('a full resend setup loads', () => {
+    const c = loadConfig({
+      ...base,
+      EMAIL_PROVIDER: 'resend',
+      NOTIFY_EMAIL: 'me@example.com',
+      RESEND_API_KEY: 're_x',
+      EMAIL_FROM: '',
+    } as NodeJS.ProcessEnv);
+    expect(c.EMAIL_PROVIDER).toBe('resend');
+    expect(c.EMAIL_FROM).toBeUndefined(); // blank means "use the default sender"
+  });
+});

@@ -9,6 +9,8 @@ export type UsageEvent =
   | 'requests_declined'
   | 'sms_sent'
   | 'sms_failed'
+  | 'email_sent'
+  | 'email_failed'
   | 'translations_performed'
   | 'translations_failed';
 

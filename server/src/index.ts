@@ -4,7 +4,9 @@ import { loadConfig } from './config.js';
 import { createPool } from './db/pool.js';
 import { migrate } from './db/migrate.js';
 import { createLogger } from './logger.js';
-import { createNotifier } from './services/notify.js';
+import { createEmailProvider } from './services/email/index.js';
+import { createEmailNotifier } from './services/email-notify.js';
+import { combineNotifiers, createNotifier } from './services/notify.js';
 import { purgeOldRequests } from './services/requests.js';
 import { createSmsProvider } from './services/sms/index.js';
 import { createTranslator } from './services/translate/index.js';
@@ -49,15 +51,28 @@ setInterval(purge, 12 * 60 * 60 * 1000).unref();
 
 const smsProvider = createSmsProvider(config);
 logger.info({ smsProvider: smsProvider?.name ?? 'none' }, 'text messages');
-const notifier = createNotifier({
-  provider: smsProvider,
-  to: config.NOTIFY_PHONE_NUMBER,
-  pool,
-  logger,
-  appUrl: config.APP_URL,
-  cooldownMs: config.SMS_COOLDOWN_MINUTES * 60_000,
-  monthlyLimit: config.SMS_MONTHLY_LIMIT,
-});
+const emailProvider = createEmailProvider(config);
+logger.info({ emailProvider: emailProvider?.name ?? 'none' }, 'email alerts');
+const notifier = combineNotifiers(
+  createNotifier({
+    provider: smsProvider,
+    to: config.NOTIFY_PHONE_NUMBER,
+    pool,
+    logger,
+    appUrl: config.APP_URL,
+    cooldownMs: config.SMS_COOLDOWN_MINUTES * 60_000,
+    monthlyLimit: config.SMS_MONTHLY_LIMIT,
+  }),
+  createEmailNotifier({
+    provider: emailProvider,
+    to: config.NOTIFY_EMAIL,
+    pool,
+    logger,
+    appUrl: config.APP_URL,
+    cooldownMs: config.EMAIL_COOLDOWN_MINUTES * 60_000,
+    monthlyLimit: config.EMAIL_MONTHLY_LIMIT,
+  }),
+);
 
 const translator = createTranslator(config);
 logger.info({ translateProvider: translator?.name ?? 'none' }, 'translation');
