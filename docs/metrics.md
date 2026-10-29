@@ -29,6 +29,8 @@ Before the owners began real use, the counters already held numbers from develop
 | requests_declined                 | 2                         |
 | sms_sent / translations_performed | 0 (both features are off) |
 
+**Test submissions made after this baseline.** The owners and developer tested the live app: the booking form (about 2026-10-16), note translation (2026-10-16), and the email alert (2026-10-29), plus any test requests accepted or declined afterward. These are in the counters and are **not customer activity**. To get exact numbers, take a **fresh reading now** (record it here with the date) and subtract that reading instead of the 2026-10-06 one from then on. The exact count of past test submissions was not recorded.
+
 **Real usage = a later reading minus this baseline.** For example, if `appointments_created` reads 41 in a month, that is 41 - 8 = 33 appointments actually scheduled. The counters only ever go up (cancelling an appointment adds to `appointments_cancelled`; it does not subtract from `appointments_created`), so the subtraction is always valid.
 
 | Measure                         | Value                                                             |

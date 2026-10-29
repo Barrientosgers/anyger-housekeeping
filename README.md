@@ -68,7 +68,7 @@ Phase 5: a note and its automatic translation (shown here with a stand-in transl
 - **Spanish and English** with a one-tap toggle. Spanish is the default; each phone remembers its own choice.
 - **Booking requests:** clients fill in a public form at `/book` (Spanish or English). Requests wait as "pending" until the owners **Aceptar** (the form opens prefilled so they can adjust the date or time, and it becomes an appointment or repeating series) or **Rechazar**. A banner on the calendar shows how many are waiting. Spam is handled by a hidden trap field, a rate limit, and a cap on pending requests; old requests are deleted automatically.
 - **Text messages to the owner** (off until configured): a generic text when a request arrives or an appointment is created, changed, or cancelled. Sent for free by an Android phone you own via httpSMS, behind a swappable `SmsProvider` interface, with a cooldown and a monthly cap. See [docs/sms-setup.md](docs/sms-setup.md).
-- **Email alert for new requests** (off until configured): one generic, personal-data-free email to the owner when a booking request arrives, with a cooldown and a monthly cap. Free (Resend). See [docs/email-setup.md](docs/email-setup.md).
+- **Email alert for new requests** (live): one generic, personal-data-free email to the owner when a booking request arrives, with a cooldown and a monthly cap. Free (Resend). See [docs/email-setup.md](docs/email-setup.md).
 - **Translation of client notes** (live): a note in the other language is shown with an automatic translation beneath it, and the **original is always kept and shown first**. Free (Cloudflare Workers AI) because the Claude API is not; a Claude adapter is built but off. If translation is down the note simply shows as written. See [docs/translation-setup.md](docs/translation-setup.md).
 - Login required for everything except the booking form. Sessions last 90 days so the owners rarely sign in.
 - Times are stored in UTC and shown in Pacific Time. Repeating visits keep their wall-clock time across daylight-saving changes (tested).
@@ -146,6 +146,8 @@ A full pre-publication review (history scans with two tools, code review, live p
 - [docs/deploy.md](docs/deploy.md): free deployment on Render + Neon
 - [docs/sms-setup.md](docs/sms-setup.md): turning on free text messages
 - [docs/translation-setup.md](docs/translation-setup.md): turning on free translation of notes
+- [docs/email-setup.md](docs/email-setup.md): the free email alert for new booking requests
+- [docs/project-log.md](docs/project-log.md): dated log of changes, lessons, and open items
 - [docs/security-review.md](docs/security-review.md): the Phase 6 security review
 - [docs/metrics.md](docs/metrics.md): measured quality, performance, and usage numbers
 - [SECURITY.md](SECURITY.md)
