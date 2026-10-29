@@ -14,6 +14,7 @@ flowchart LR
   S -->|TLS| DB[("Neon free Postgres")]
   S -->|one note's text| TR["Translator interface<br/>Cloudflare / Claude / fake"]
   S -->|generic text| SMS["SmsProvider interface<br/>httpSMS / Twilio / fake"]
+  S -->|generic email| EM["EmailProvider interface<br/>Resend / fake"]
   SMS --> PH["Sender Android phone"]
   S -. "Phase 5" .-> TR["Translator interface<br/>Claude API / fake"]
   S -.-> SE["Sentry (optional)"]

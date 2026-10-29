@@ -4,6 +4,8 @@ The app can email one address when a **new booking request** arrives, so you do 
 
 It emails **only for new requests**. Appointment changes stay quiet by design, so the inbox stays calm. (Texts to the owner, if turned on, are separate; see [sms-setup.md](sms-setup.md).)
 
+**Verified live on 2026-10-29:** after the setup below, a test request submitted through `/book` produced the email in the owner's inbox.
+
 ## What the email says
 
 Deliberately generic, in both languages, with a link to the app:
